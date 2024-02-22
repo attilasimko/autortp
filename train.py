@@ -4,7 +4,7 @@ from losses import rtp_loss
 import matplotlib.pyplot as plt
 import numpy as np
 import os 
-import tensorflow as tf
+import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -30,7 +30,7 @@ epoch_length = 5000
 
 model = build_model()
 model.compile(loss='mse', optimizer=Adam(lr=0.001))
-print(f"Number of model parameters: {np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()])}")
+print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
     training_loss = []
