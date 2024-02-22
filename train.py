@@ -2,23 +2,20 @@ from data import generate_data
 from model import build_model
 from losses import rtp_loss
 import matplotlib.pyplot as plt
+from utils import get_dose_batch
 import numpy as np
 import os 
 import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 def plot_res():
-    # leaf_outp = []
-    # for i in range(6):
-    #     leaf_outp.append(model.get_layer(f'leaf_{i}').output)
-    # model_leaf = Model(model.input, leaf_outp)
-
     x, y = generate_data((32, 32), 10)
     pred = model(x)
+    get_dose_batch(pred[0], pred[1], y.shape)
     # pred_leaf = model_leaf(x)
     num_slices = 16
     for i in range(num_slices):
@@ -38,7 +35,7 @@ n_epochs = 10
 epoch_length = 5000
 
 model = build_model()
-model.compile(loss='mse', optimizer=Adam(learning_rate=0.001))
+model.compile(loss=rtp_loss, optimizer=Adam(learning_rate=0.001))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
