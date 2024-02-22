@@ -4,26 +4,32 @@ from losses import rtp_loss
 import matplotlib.pyplot as plt
 import numpy as np
 import os 
+from tensorflow.keras.optimizers import Adam
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 def plot_res():
-    x, y = generate_data()
+    x, y = generate_data((32, 32, 32), 10)
     pred = model.predict_on_batch(x)
     num_slices = 16
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)
         plt.imshow(y[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
+        plt.xticks([])
+        plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
         plt.imshow(pred[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
+        plt.xticks([])
+        plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')
 
 n_epochs = 10
-epoch_length = 1000
+epoch_length = 5000
 
 model = build_model()
-model.compile(loss='mae', optimizer='Adam')
+model.compile(loss='mse', optimizer=Adam(lr=0.001))
+model.summary()
 for epoch in range(n_epochs):
     training_loss = []
     for i in range(epoch_length):
