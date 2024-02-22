@@ -6,16 +6,16 @@ import numpy as np
 from utils import get_monaco_projections
 
 
-def build_model(batch_size=1, num_cp=6):
+def build_model(batch_size=1, num_cp=24):
     inp = Input(shape=(64, 64, 64, 2), dtype=tf.float16, batch_size=batch_size)
     x = Conv3D(4, (3, 3, 3), activation='relu', padding='same')(inp)
-    x = Conv3D(8, (3, 3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling3D((4, 4, 4))(x)
-    x = Conv3D(16, (3, 3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(32, (3, 3, 3), activation='relu', padding='same')(x)
     x = MaxPooling3D((4, 4, 4))(x)
-    x = Conv3D(64, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(128, (3, 3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling3D((4, 4, 4))(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling3D((4, 4, 4))(x)
+    x = Conv3D(1024, (3, 3, 3), activation='relu', padding='same')(x)
     latent_space = Flatten()(x)
 
 
