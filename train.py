@@ -14,7 +14,7 @@ def plot_res(x):
         plt.imshow(x[0, :, :, int(i * 64 / num_slices), 0])
         plt.subplot(4, 8, i * 2 + 2)
         plt.imshow(pred[0, :, :, int(i * 64 / num_slices)])
-    plt.show()
+    plt.savefig(f'imgs/{epoch}.png')
 
 n_epochs = 1
 epoch_length = 10
@@ -22,10 +22,10 @@ epoch_length = 10
 model = build_model()
 model.compile(loss='mae', optimizer='adam')
 for epoch in range(n_epochs):
-    plot_res(generate_data()[0])
     training_loss = []
     for i in range(epoch_length):
         x, y = generate_data()
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
+    plot_res(generate_data()[0])
