@@ -16,10 +16,12 @@ def plot_res():
     num_slices = 16
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)
+        plt.title(f"{int(i * 64 / num_slices)}-gt")
         plt.imshow(y[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
         plt.xticks([])
         plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
+        plt.title(f"{int(i * 64 / num_slices)}-pred")
         plt.imshow(pred[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
         plt.xticks([])
         plt.yticks([])
@@ -29,7 +31,7 @@ n_epochs = 10
 epoch_length = 5000
 
 model = build_model()
-model.compile(loss='mse', optimizer=Adam(lr=0.001))
+model.compile(loss='mse', optimizer=Adam(learning_rate=0.001))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
