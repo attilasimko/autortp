@@ -6,13 +6,20 @@ import numpy as np
 import os 
 import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import Model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 def plot_res():
+    # leaf_outp = []
+    # for i in range(6):
+    #     leaf_outp.append(model.get_layer(f'leaf_{i}').output)
+    # model_leaf = Model(model.input, leaf_outp)
+
     x, y = generate_data((32, 32), 10)
-    pred = model.predict_on_batch(x)
+    pred = model(x)
+    # pred_leaf = model_leaf(x)
     num_slices = 16
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)

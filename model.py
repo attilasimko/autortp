@@ -6,7 +6,7 @@ import numpy as np
 from utils import get_monaco_projections
 
 
-def build_model(batch_size=1, num_cp=24):
+def build_model(batch_size=1, num_cp=6):
     inp = Input(shape=(64, 64, 64, 2), dtype=tf.float16, batch_size=batch_size)
     x = Conv3D(4, (3, 3, 3), activation='relu', padding='same')(inp)
     x = Conv3D(32, (3, 3, 3), activation='relu', padding='same')(x)
@@ -22,17 +22,19 @@ def build_model(batch_size=1, num_cp=24):
     dose = monaco_plan(inp[..., 0], latent_space, num_cp)
 
     return Model(inp, dose)
+    
+    
 
 def monaco_plan(ct, latent_space, num_cp):
     control_matrices = get_monaco_projections(num_cp)
     # control_matrices = [tf.Variable(tf.random.normal(shape=(ct.shape[0], 64, 64, 64), dtype=tf.float16), trainable=False, dtype=tf.float16) for _ in range(240)]
 
     dose = tf.zeros_like(ct)
-    # leafs = []
-    # for i in range(num_cp):
-    #     leaf = Dense(128, activation='relu')(latent_space)
-    #     leaf = Dense(128, activation='relu')(leaf)
-    #     leafs.append(Reshape((2, 64))(leaf))
+    leafs = []
+    for i in range(num_cp):
+        leaf = Dense(128, activation='relu')(latent_space)
+        leaf = Dense(128, activation='relu')(leaf)
+        leafs.append(Reshape((2, 64), name=f'leaf_{i}')(leaf))
     
     mus = []
     for i in range(num_cp):
@@ -42,8 +44,16 @@ def monaco_plan(ct, latent_space, num_cp):
         mu = Dense(1, activation='relu')(mu)
         mus.append(mu)
 
-    for i in range(num_cp):
-        # tf.where(tf.greater(leaf[:, 0, i:i+1, 0, 0], leafs[i][:, 1, i:i+1, 0, 0]), tf.multiply(control_matrices[i], mu[:, 0, i:i+1, 0, 0]), 0)
-        dose += tf.multiply(control_matrices[i], mus[i])
-
+    for cp_idx in range(num_cp):
+        for j in range(64): # Number of leaves
+            i_values = tf.range(64, dtype=tf.float32)
+            i_values = tf.cast(i_values, tf.float16)
+            i_values = tf.expand_dims(i_values, axis=-1)  # Shape: (64, 1)
+            leaf_min = tf.expand_dims(leafs[cp_idx][:, 0, j], axis=-1)  # Shape: (batch_size, 1)
+            leaf_max = tf.expand_dims(leafs[cp_idx][:, 1, j], axis=-1)  # Shape: (batch_size, 1)
+            idx_value = j * 64 + i_values + 1
+            
+            condition = tf.logical_and(tf.less_equal(i_values, leaf_max), tf.greater_equal(i_values, leaf_min))
+            dose += tf.where(condition, tf.where(tf.equal(control_matrices[cp_idx], idx_value), mus[cp_idx], 0), 0)
+            
     return dose
