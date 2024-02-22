@@ -31,7 +31,7 @@ n_epochs = 10
 epoch_length = 5000
 
 model = build_model()
-model.compile(loss='mse', optimizer=Adam(learning_rate=0.0001))
+model.compile(loss='mse', optimizer=Adam(learning_rate=0.001))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
