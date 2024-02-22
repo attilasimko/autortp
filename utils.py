@@ -33,9 +33,8 @@ def get_monaco_projections(num_cp):
 
     return rotated_arrays
 
-def get_dose_batch(leafs, mus, dose_shape, num_cp=6):
+def get_dose_batch(control_matrices, leafs, mus, dose_shape, num_cp=6):
     dose = tf.zeros(dose_shape, dtype=tf.float16)
-    control_matrices = get_monaco_projections(num_cp)
     for cp_idx in range(num_cp):
         for i in range(64): # Number of leaves
             for j in range(64): # Number of leaves
