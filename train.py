@@ -4,7 +4,9 @@ from losses import rtp_loss
 import matplotlib.pyplot as plt
 import numpy as np
 import os 
-os.environ['CUDA_VISIBLE_DEVICES'] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 def plot_res():
     x, y = generate_data()
