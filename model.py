@@ -30,7 +30,7 @@ def monaco_plan(ct, latent_space, num_cp):
     leafs = []
     for i in range(num_cp):
         leaf = Dense(128, activation='relu')(latent_space)
-        leaf = Dense(128, activation='relu')(leaf)
+        leaf = Dense(128, activation='sigmoid')(leaf)
         leafs.append(Reshape((2, 64), name=f'leaf_{i}')(leaf))
     
     mus = []

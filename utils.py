@@ -37,16 +37,16 @@ def get_dose_batch(leafs, mus, dose_shape, num_cp=6):
     dose = tf.zeros(dose_shape, dtype=tf.float16)
     control_matrices = get_monaco_projections(num_cp)
     for cp_idx in range(num_cp):
-        for j in range(64): # Number of leaves
-            i_values = tf.range(64, dtype=tf.float32)
-            i_values = tf.cast(i_values, tf.float16)
-            i_values = tf.expand_dims(i_values, axis=-1)  # Shape: (64, 1)
-            leaf_min = tf.expand_dims(leafs[:, 0, j, cp_idx], axis=-1)  # Shape: (batch_size, 1)
-            leaf_max = tf.expand_dims(leafs[:, 1, j, cp_idx], axis=-1)  # Shape: (batch_size, 1)
-            idx_value = j * 64 + i_values + 1
-            
-            condition = tf.logical_and(tf.logical_and(tf.less_equal(i_values, leaf_max), tf.greater_equal(i_values, leaf_min)), tf.equal(control_matrices[cp_idx], idx_value))
-            dose += tf.where(condition, mus[..., cp_idx], 0)
+        for i in range(64): # Number of leaves
+            for j in range(64): # Number of leaves
+                leaf_min = tf.expand_dims(leafs[:, 0, j, cp_idx], axis=-1)  # Shape: (batch_size, 1)
+                leaf_max = tf.expand_dims(leafs[:, 1, j, cp_idx], axis=-1)  # Shape: (batch_size, 1)
+                
+                idx_value = j * 64 + i + 1
+                leaf_idx_pos = i / 64
+                
+                condition = tf.logical_and(tf.logical_and(tf.less_equal(leaf_idx_pos, leaf_max), tf.greater_equal(leaf_idx_pos, leaf_min)), tf.equal(control_matrices[cp_idx], idx_value))
+                dose += tf.where(condition, mus[..., cp_idx], 0)
     return dose
 
 def param_to_vector(leafs, mus):
