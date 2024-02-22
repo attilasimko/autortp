@@ -2,7 +2,7 @@ from data import generate_data
 from model import build_model
 from losses import rtp_loss
 import matplotlib.pyplot as plt
-from utils import get_dose_batch
+from utils import get_dose_batch, vector_to_param
 import numpy as np
 import os 
 import tensorflow.keras.backend as K
@@ -15,7 +15,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 def plot_res():
     x, y = generate_data((32, 32), 10)
     pred = model(x)
-    get_dose_batch(pred[0], pred[1], y.shape)
+    leafs, mus = vector_to_param(pred)
+    get_dose_batch(leafs, mus, y.shape)
     # pred_leaf = model_leaf(x)
     num_slices = 16
     for i in range(num_slices):
