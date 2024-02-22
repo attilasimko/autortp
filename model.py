@@ -15,7 +15,19 @@ def build_model(batch_size=1, num_cp=6):
     x = Conv3D(64, (3, 3, 3), activation='relu', padding='same')(x)
     x = MaxPooling3D((2, 2, 2))(x)
     x = Conv3D(128, (3, 3, 3), activation='relu', padding='same')(x)
-    x = Conv3D(num_cp, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(128, (3, 3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling3D((2, 2, 2))(x)
+    x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling3D((2, 2, 2))(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling3D((2, 2, 2))(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling3D((2, 2, 2))(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
     latent_space = Flatten()(x)
 
 
@@ -28,17 +40,25 @@ def monaco_plan(ct, latent_space, num_cp):
     # control_matrices = [tf.Variable(tf.random.normal(shape=(ct.shape[0], 64, 64, 64), dtype=tf.float16), trainable=False, dtype=tf.float16) for _ in range(240)]
 
     dose = tf.zeros_like(ct)
-    leaf = Reshape((2, num_cp, 64, -1))(latent_space)
-    leaf = Conv3D(16, (3, 3, 3), activation='relu', padding='same')(leaf)
-    leaf = Conv3D(2, (3, 3, 3), activation='relu', padding='same')(leaf)
-    leaf = Conv3D(1, (3, 3, 3), activation='relu', padding='same')(leaf)
-
-    mu = Reshape((1, num_cp, 1, -1))(latent_space)
-    mu = Conv3D(16, (3, 3, 3), activation='relu', padding='same')(mu)
-    mu = Conv3D(2, (3, 3, 3), activation='relu', padding='same')(mu)
-    mu = Conv3D(1, (3, 3, 3), activation='relu', padding='same')(mu)
+    leafs = []
+    for i in range(num_cp):
+        leaf = Dense(512, activation='relu')(latent_space)
+        leaf = Dense(256, activation='relu')(leaf)
+        leaf = Dense(128, activation='relu')(leaf)
+        leaf = Dense(128, activation='relu')(leaf)
+        leafs.append(Reshape((2, 64))(leaf))
+    
+    mus = []
+    for i in range(num_cp):
+        mu = Dense(512, activation='relu')(latent_space)
+        mu = Dense(256, activation='relu')(mu)
+        mu = Dense(128, activation='relu')(mu)
+        mu = Dense(32, activation='relu')(mu)
+        mu = Dense(1, activation='relu')(mu)
+        mus.append(mu)
 
     for i in range(num_cp):
-        dose += tf.where(tf.greater(leaf[:, 0, i:i+1, 0, 0], leaf[:, 1, i:i+1, 0, 0]), tf.multiply(control_matrices[i], mu[:, 0, i:i+1, 0, 0]), 0)
+        # tf.where(tf.greater(leaf[:, 0, i:i+1, 0, 0], leafs[i][:, 1, i:i+1, 0, 0]), tf.multiply(control_matrices[i], mu[:, 0, i:i+1, 0, 0]), 0)
+        dose += tf.multiply(control_matrices[i], mus[i])
 
     return dose

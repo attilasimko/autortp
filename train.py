@@ -18,7 +18,7 @@ def plot_res():
     plt.savefig(f'imgs/{epoch}.png')
 
 n_epochs = 10
-epoch_length = 10000
+epoch_length = 1000
 
 model = build_model()
 model.compile(loss='mae', optimizer='Adam')
