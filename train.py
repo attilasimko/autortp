@@ -16,7 +16,7 @@ def plot_res():
     x, y = generate_data((32, 32), 10)
     pred = model(x)
     leafs, mus = vector_to_param(pred)
-    get_dose_batch(leafs, mus, y.shape)
+    dose = get_dose_batch(leafs, mus, y.shape)
     # pred_leaf = model_leaf(x)
     num_slices = 16
     for i in range(num_slices):
@@ -27,7 +27,7 @@ def plot_res():
         plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
         plt.title(f"{int(i * 64 / num_slices)}-pred")
-        plt.imshow(pred[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
+        plt.imshow(dose[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
         plt.xticks([])
         plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')
