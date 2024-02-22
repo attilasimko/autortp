@@ -11,5 +11,5 @@ def generate_data():
     gaussian = np.exp(-d2 / (2 * sigma**2))
     gaussian /= np.max(gaussian)
     mask = np.array(gaussian > 0.5, dtype=float)
-    data = np.stack([ct + 0.1 * mask, mask], axis=-1)
-    return data[None, ...], mask[None, ...]
+    data = np.stack([ct - 1 + 0.1 * mask, mask], axis=-1)
+    return data[None, ...], 5 * mask[None, ...]

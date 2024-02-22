@@ -6,21 +6,21 @@ import numpy as np
 import os 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-def plot_res(x):
+def plot_res(x, y):
     pred = model.predict(x)
     num_slices = 16
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)
-        plt.imshow(x[0, :, :, int(i * 64 / num_slices), 0])
+        plt.imshow(y[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
         plt.subplot(4, 8, i * 2 + 2)
-        plt.imshow(pred[0, :, :, int(i * 64 / num_slices)])
+        plt.imshow(pred[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
     plt.savefig(f'imgs/{epoch}.png')
 
-n_epochs = 1
-epoch_length = 10
+n_epochs = 10
+epoch_length = 10000
 
 model = build_model()
-model.compile(loss='mae', optimizer='adam')
+model.compile(loss='mae', optimizer='Adam')
 for epoch in range(n_epochs):
     training_loss = []
     for i in range(epoch_length):
