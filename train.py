@@ -6,7 +6,8 @@ import numpy as np
 import os 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-def plot_res(x, y):
+def plot_res():
+    x, y = generate_data()
     pred = model.predict_on_batch(x)
     num_slices = 16
     for i in range(num_slices):
@@ -28,4 +29,4 @@ for epoch in range(n_epochs):
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
-    plot_res(generate_data())
+    plot_res()
