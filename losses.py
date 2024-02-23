@@ -5,7 +5,7 @@ def rtp_loss(num_cp):
     ray_matrices = get_monaco_projections(num_cp)
     num_mc = 1
     def loss_fn(y_true, y_pred):
-        absorption_matrices = get_absorption_matrices(y_true.numpy()[..., 0], num_cp)
+        absorption_matrices = get_absorption_matrices(y_true[..., 0], num_cp)
         leafs, mus = vector_to_monaco_param(y_pred)
         dose_diffs = 0.0
         for mc_idx in range(num_mc):

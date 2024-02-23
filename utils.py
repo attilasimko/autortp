@@ -5,7 +5,7 @@ import tensorflow as tf
 def get_absorption_matrices(ct, num_cp):
     rotated_arrays = []
     for angle_idx in range(num_cp):
-        rotated_arrays.append(np.ones_like(ct, dtype=np.float16))
+        rotated_arrays.append(tf.ones_like(ct, dtype=np.float16))
 
     return rotated_arrays
 
