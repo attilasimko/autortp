@@ -9,6 +9,13 @@ def get_absorption_matrices(ct, num_cp):
 
     return rotated_arrays
 
+def get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point):
+    for cp_idx in range(num_cp):
+        absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]]
+        ray_idx = tf.cast(ray_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
+        cond_leafs = tf.logical_and(tf.less_equal(leafs[:, 1, mc_point[1], cp_idx] * 32, ray_idx), tf.greater_equal(64 - leafs[:, 0, mc_point[1], cp_idx] * 32, ray_idx))
+        dose += tf.reduce_sum(tf.where(cond_leafs, mus[:, 0, cp_idx], 0) * absorption_value)
+    return dose
 def get_monaco_projections(num_cp):
     shape = (128, 128)
     rotated_arrays = []

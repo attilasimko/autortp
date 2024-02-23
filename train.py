@@ -2,7 +2,7 @@ from data import generate_data
 from model import build_model
 from losses import rtp_loss
 import matplotlib.pyplot as plt
-from utils import get_dose_batch, vector_to_monaco_param, get_monaco_projections
+from utils import *
 import numpy as np
 import os 
 import tensorflow.keras.backend as K
@@ -16,11 +16,18 @@ tf.compat.v1.enable_eager_execution()
 
 def plot_res():
     x, y = generate_data((32, 32), 10)
+    dose = np.zeros_like(y)
     pred = model.predict(x)
+    num_cp = 6
+    ray_matrices = get_monaco_projections(num_cp)
+    absorption_matrices = get_absorption_matrices(y[..., 0], num_cp)
     leafs, mus = vector_to_monaco_param(pred)
-    control_matrices = get_monaco_projections(leafs, 6)
-    dose = get_dose_batch(control_matrices, leafs, mus, y.shape)
-    # pred_leaf = model_leaf(x)
+    for i in range(64):
+        for j in range(64):
+            for k in range(64):
+                mc_point = tf.constant([i, j, k], dtype=tf.int32)
+                dose[i, j, k] = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
+
     num_slices = 16
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)
