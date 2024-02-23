@@ -15,9 +15,10 @@ def build_model(batch_size=1, num_cp=6):
     x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
     x = MaxPooling3D((4, 4, 4))(x)
-    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
     latent_space = Flatten()(x)
-
 
     concat = monaco_plan(inp[..., 0], latent_space, num_cp)
 
@@ -28,12 +29,14 @@ def build_model(batch_size=1, num_cp=6):
 def monaco_plan(ct, latent_space, num_cp):
     leafs = []
     for i in range(num_cp):
-        leaf = Dense(128, activation='sigmoid')(latent_space)
+        leaf = Dense(128, activation='relu')(latent_space)
+        leaf = Dense(128, activation='sigmoid')(leaf)
         leafs.append(Reshape((2, 64), name=f'leaf_{i}')(leaf))
     
     mus = []
     for i in range(num_cp):
-        mu = Dense(1, activation='relu')(latent_space)
+        mu = Dense(16, activation='relu')(latent_space)
+        mu = Dense(1, activation='sigmoid')(mu)
         mus.append(mu)
             
     return monaco_param_to_vector(leafs, mus)

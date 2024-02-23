@@ -14,4 +14,4 @@ def generate_data(center=None, sigma=None):
     gaussian /= np.max(gaussian)
     mask = np.array(gaussian > 0.5, dtype=float)
     data = np.stack([ct, mask], axis=-1)
-    return data[None, ...], 5 * mask[None, ...]
+    return data[None, ...], mask[None, ...]
