@@ -29,7 +29,7 @@ def get_monaco_projections(num_cp):
             rotated_arrays.append(array_replica)
         rotated_arrays.append(np.array(array, dtype=np.float16))
 
-    return rotated_arrays
+    return tf.Tensor(rotated_arrays)
 
 def get_dose_batch(control_matrices, leafs, mus, dose_shape, num_cp=6):
     dose = tf.zeros(dose_shape, dtype=tf.float16)
