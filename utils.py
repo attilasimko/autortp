@@ -10,6 +10,7 @@ def get_absorption_matrices(ct, num_cp):
     return rotated_arrays
 
 def get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point):
+    dose = 0.0
     for cp_idx in range(num_cp):
         absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]]
         ray_idx = tf.cast(ray_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
