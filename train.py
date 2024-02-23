@@ -2,7 +2,7 @@ from data import generate_data
 from model import build_model
 from losses import rtp_loss
 import matplotlib.pyplot as plt
-from utils import get_dose_batch, vector_to_param, get_monaco_projections
+from utils import get_dose_batch, vector_to_monaco_param, get_monaco_projections
 import numpy as np
 import os 
 import tensorflow.keras.backend as K
@@ -12,11 +12,11 @@ from tensorflow.keras.models import Model
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
-control_matrices = get_monaco_projections(6)
 def plot_res():
     x, y = generate_data((32, 32), 10)
-    pred = model(x)
-    leafs, mus = vector_to_param(pred)
+    pred = model.predict(x)
+    leafs, mus = vector_to_monaco_param(pred)
+    control_matrices = get_monaco_projections(leafs, 6)
     dose = get_dose_batch(control_matrices, leafs, mus, y.shape)
     # pred_leaf = model_leaf(x)
     num_slices = 16
@@ -42,9 +42,9 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 
 for epoch in range(n_epochs):
     training_loss = []
+    plot_res()
     for i in range(epoch_length):
         x, y = generate_data()
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
-    plot_res()

@@ -3,7 +3,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Flatten, Dense, Dropout, Reshape
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
 import numpy as np
-from utils import get_monaco_projections, param_to_vector
+from utils import get_monaco_projections, monaco_param_to_vector
 
 
 def build_model(batch_size=1, num_cp=6):
@@ -43,4 +43,4 @@ def monaco_plan(ct, latent_space, num_cp):
 
     
             
-    return param_to_vector(leafs, mus)
+    return monaco_param_to_vector(leafs, mus)
