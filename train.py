@@ -22,12 +22,12 @@ def plot_res(num_cp):
     ray_matrices = get_monaco_projections(num_cp)
     absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
-    num_step = 4
-    for i in range(0, 64, num_step):
-        for j in range(0, 64, num_step):
-            for k in range(0, 64, num_step):
-                mc_point = tf.constant([i, j, k], dtype=tf.int32)
-                dose[0, i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
+    # num_step = 4
+    # for i in range(0, 64, num_step):
+    #     for j in range(0, 64, num_step):
+    #         for k in range(0, 64, num_step):
+    #             mc_point = tf.constant([i, j, k], dtype=tf.int32)
+    #             dose[0, i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
 
     num_slices = 16
     for i in range(num_slices):
