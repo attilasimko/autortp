@@ -28,7 +28,7 @@ def plot_res(ray_matrices, num_cp):
     #             mc_point = tf.constant([i, j, k], dtype=tf.int32)
     #             dose[0, i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
 
-    num_slices = 16
+    num_slices = 6
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)
         plt.title(f"{int(i * 64 / num_slices)}-gt")
