@@ -22,6 +22,7 @@ def plot_res(ray_matrices, num_cp):
     absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
     leafs = np.zeros_like(leafs)
+    mus = np.ones_like(mus)
     num_step = 4
     for i in range(0, 64, num_step):
         for j in range(0, 64, num_step):
