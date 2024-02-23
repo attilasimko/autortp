@@ -26,10 +26,10 @@ def get_monaco_projections(num_cp):
         x, y = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]))
         indeces = y * shape[0] + x
         indeces = np.repeat(indeces[..., None], 128, -1)
+        indeces = np.swapaxes(indeces, 0, 2)
 
         for angle_idx in range(num_cp):
             array = np.expand_dims(rotate(indeces, angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0)[32:96, 32:96, 32:96], 0)
-            array = np.swapaxes(array, 1, 3)
             array_replica = - np.ones_like(array)
             idx = 0
             for i in range(32, 96):
