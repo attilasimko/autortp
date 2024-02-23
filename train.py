@@ -33,12 +33,12 @@ def plot_res(num_cp):
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)
         plt.title(f"{int(i * 64 / num_slices)}-gt")
-        plt.imshow(y[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
+        plt.imshow(ray_matrices[0][0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
         plt.xticks([])
         plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
         plt.title(f"{int(i * 64 / num_slices)}-pred")
-        plt.imshow(dose[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
+        plt.imshow(ray_matrices[2][0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
         plt.xticks([])
         plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')
@@ -55,9 +55,9 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 
 for epoch in range(n_epochs):
     training_loss = []
-    for i in range(epoch_length):
-        x, y = generate_data()
-        loss = model.train_on_batch(x, y)
-        training_loss.append(loss)
+    # for i in range(epoch_length):
+    #     x, y = generate_data()
+    #     loss = model.train_on_batch(x, y)
+    #     training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     plot_res(num_cp)
