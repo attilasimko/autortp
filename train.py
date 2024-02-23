@@ -34,25 +34,25 @@ def plot_res(ray_matrices, num_cp):
     for i in range(num_slices):
         plt.subplot(4, 8, i * 2 + 1)
         plt.title(f"{int(i * 64 / num_slices)}-gt")
-        plt.imshow(y[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
+        plt.imshow(y[0, :, :, int(i * 64 / num_slices)], cmap='jet', vmin=0, vmax=5)
         plt.xticks([])
         plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
         plt.title(f"{int(i * 64 / num_slices)}-pred")
-        plt.imshow(dose[0, :, :, int(i * 64 / num_slices)], vmin=0, vmax=5)
+        plt.imshow(dose[0, :, :, int(i * 64 / num_slices)], cmap='jet', vmin=0, vmax=5)
         plt.xticks([])
         plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')
 
 n_epochs = 10
-epoch_length = 100
+epoch_length = 10000
 
 num_cp = 6
 num_mc = 500
 ray_matrices = get_monaco_projections(num_cp)
 
 model = build_model()
-model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.001))
+model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.0001))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
