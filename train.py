@@ -15,7 +15,7 @@ tf.compat.v1.enable_eager_execution()
 # os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 def plot_res(num_cp):
-    x, y = generate_data((32, 32), 10)
+    x, y = generate_data((32, 32, 32), 10)
     dose = np.zeros_like(y)
     pred = model.predict_on_batch(x)
     # pred = np.random.rand(774)
