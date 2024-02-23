@@ -43,7 +43,7 @@ def plot_res():
     plt.savefig(f'imgs/{epoch}.png')
 
 n_epochs = 10
-epoch_length = 1
+epoch_length = 100
 
 model = build_model()
 model.compile(loss=rtp_loss(6), optimizer=Adam(learning_rate=0.001))
