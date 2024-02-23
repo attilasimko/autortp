@@ -42,9 +42,9 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 
 for epoch in range(n_epochs):
     training_loss = []
-    plot_res()
     for i in range(epoch_length):
         x, y = generate_data()
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
+    plot_res()
