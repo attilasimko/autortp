@@ -22,8 +22,7 @@ def plot_res(num_cp):
     ray_matrices = get_monaco_projections(num_cp)
     absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
-    num_step = 8
-    get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, tf.constant([32, 32, 32], dtype=tf.int32))
+    num_step = 4
     for i in range(0, 64, num_step):
         for j in range(0, 64, num_step):
             for k in range(0, 64, num_step):

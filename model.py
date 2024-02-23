@@ -26,21 +26,15 @@ def build_model(batch_size=1, num_cp=6):
     
 
 def monaco_plan(ct, latent_space, num_cp):
-    # control_matrices = [tf.Variable(tf.random.normal(shape=(ct.shape[0], 64, 64, 64), dtype=tf.float16), trainable=False, dtype=tf.float16) for _ in range(240)]
     leafs = []
     for i in range(num_cp):
-        leaf = Dense(128, activation='relu')(latent_space)
-        leaf = Dense(128, activation='sigmoid')(leaf)
+        leaf = Dense(128, activation='sigmoid')(latent_space)
         leafs.append(Reshape((2, 64), name=f'leaf_{i}')(leaf))
     
     mus = []
     for i in range(num_cp):
-        mu = Dense(32, activation='relu')(latent_space)
-        mu = Dense(8, activation='relu')(mu)
-        mu = Dense(4, activation='relu')(mu)
+        mu = Dense(16, activation='relu')(latent_space)
         mu = Dense(1, activation='relu')(mu)
         mus.append(mu)
-
-    
             
     return monaco_param_to_vector(leafs, mus)
