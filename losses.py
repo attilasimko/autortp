@@ -10,7 +10,7 @@ def rtp_loss(num_cp):
         dose_diffs = 0.0
         for mc_idx in range(num_mc):
             mc_point = tf.random.uniform([3], 0, 64, dtype=tf.int32)
-            true_dose = y_true[mc_point[0], mc_point[1], mc_point[2]]
+            true_dose = y_true[:, mc_point[0], mc_point[1], mc_point[2]]
             pred_dose = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
 
             dose_diffs += tf.abs(true_dose - pred_dose) / num_mc

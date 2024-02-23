@@ -12,8 +12,8 @@ def get_absorption_matrices(ct, num_cp):
 def get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point):
     dose = 0.0
     for cp_idx in range(num_cp):
-        absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]]
-        ray_idx = tf.cast(ray_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
+        absorption_value = absorption_matrices[cp_idx][:, mc_point[0], mc_point[1], mc_point[2]]
+        ray_idx = tf.cast(ray_matrices[cp_idx][:, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
         cond_leafs = tf.logical_and(tf.less_equal(leafs[:, 1, mc_point[1], cp_idx] * 32, ray_idx), tf.greater_equal(64 - leafs[:, 0, mc_point[1], cp_idx] * 32, ray_idx))
         dose += tf.reduce_sum(tf.where(cond_leafs, mus[:, 0, cp_idx], 0) * absorption_value)
     return dose
@@ -27,7 +27,7 @@ def get_monaco_projections(num_cp):
         indeces = np.swapaxes(indeces, 1, 2)
 
         for angle_idx in range(num_cp):
-            array = rotate(indeces, angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0)[32:96, 32:96, 32:96]
+            array = np.expand_dims(rotate(indeces, angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0)[32:96, 32:96, 32:96], 0)
             array_replica = - np.ones_like(array)
             idx = 0
             for i in range(32, 96):
