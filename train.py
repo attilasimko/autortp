@@ -48,11 +48,11 @@ n_epochs = 10
 epoch_length = 10000
 
 num_cp = 6
-num_mc = 500
+num_mc = 27 # Fixed for now, anyways. Overwritten later on.
 ray_matrices = get_monaco_projections(num_cp)
 
 model = build_model()
-model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.0001))
+model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.001))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
