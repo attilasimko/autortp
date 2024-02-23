@@ -29,7 +29,7 @@ def get_monaco_projections(num_cp):
         indeces = np.swapaxes(indeces, 1, 2)
 
         for angle_idx in range(num_cp):
-            array = np.expand_dims(rotate(indeces, angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0)[32:96, 32:96, 32:96], 0)
+            array = np.expand_dims(rotate(indeces, angle_idx * 360 / num_cp, (1, 0), reshape=False, order=0)[32:96, 32:96, 32:96], 0)
             array_replica = - np.ones_like(array)
             idx = 0
             for i in range(32, 96):

@@ -14,12 +14,11 @@ tf.compat.v1.enable_eager_execution()
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
-def plot_res(num_cp):
+def plot_res(ray_matrices, num_cp):
     x, y = generate_data((32, 32, 32), 10)
     dose = np.zeros_like(y)
     pred = model.predict_on_batch(x)
     # pred = np.random.rand(774)
-    ray_matrices = get_monaco_projections(num_cp)
     absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
     # num_step = 4
@@ -48,6 +47,7 @@ epoch_length = 10000
 
 num_cp = 6
 num_mc = 100
+ray_matrices = get_monaco_projections(num_cp)
 
 model = build_model()
 model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.0001))
@@ -60,4 +60,4 @@ for epoch in range(n_epochs):
     #     loss = model.train_on_batch(x, y)
     #     training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
-    plot_res(num_cp)
+    plot_res(ray_matrices, num_cp)
