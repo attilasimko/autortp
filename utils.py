@@ -27,7 +27,7 @@ def get_monaco_projections(num_cp):
                     array_replica[array == (j * shape[0] + i)] = idx
                     idx += 1
             rotated_arrays.append(array_replica)
-        rotated_arrays.append(tf.Variable(initial_value=array, trainable=False, dtype=tf.float16))
+        rotated_arrays.append(tf.constant(array, dtype=tf.float16))
 
     return rotated_arrays
 
