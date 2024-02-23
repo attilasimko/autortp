@@ -14,8 +14,7 @@ def rtp_loss(num_cp):
             true_dose = y_true[mc_point[0], mc_point[1], mc_point[2]]
             for cp_idx in range(num_cp):
                 absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]]
-                print(ray_matrices[cp_idx])
-                ray_idx = ray_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]]
+                ray_idx = tf.constant(ray_matrices[cp_idx])[mc_point[0], mc_point[1], mc_point[2]]
                 cond_leafs = tf.logical_and(tf.less_equal(leafs[:, 1, mc_point[1], cp_idx], ray_idx), tf.greater_equal(leafs[:, 0, mc_point[1], cp_idx], ray_idx))
                 dose += tf.reduce_sum(tf.where(cond_leafs, mus[:, 0, cp_idx], 0) * absorption_value)
             dose_diffs += tf.abs(true_dose - dose) / num_mc
