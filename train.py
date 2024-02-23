@@ -17,7 +17,7 @@ tf.compat.v1.enable_eager_execution()
 def plot_res():
     x, y = generate_data((32, 32), 10)
     dose = np.zeros_like(y)
-    pred = model.predict(x)
+    pred = model.predict_on_batch(x)
     num_cp = 6
     ray_matrices = get_monaco_projections(num_cp)
     absorption_matrices = get_absorption_matrices(y, num_cp)
@@ -26,7 +26,7 @@ def plot_res():
         for j in range(64):
             for k in range(64):
                 mc_point = tf.constant([i, j, k], dtype=tf.int32)
-                dose[i, j, k] = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
+                dose[0, i, j, k] = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
 
     num_slices = 16
     for i in range(num_slices):

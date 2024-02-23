@@ -3,7 +3,7 @@ import tensorflow as tf
 
 def rtp_loss(num_cp):
     ray_matrices = get_monaco_projections(num_cp)
-    num_mc = 1
+    num_mc = 1000
     def loss_fn(y_true, y_pred):
         absorption_matrices = get_absorption_matrices(y_true, num_cp)
         leafs, mus = vector_to_monaco_param(y_pred)
