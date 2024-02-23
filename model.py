@@ -13,9 +13,9 @@ def build_model(batch_size=1, num_cp=6):
     x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(128, (3, 3, 3), activation='relu', padding='same')(x)
     x = MaxPooling3D((4, 4, 4))(x)
-    x = Conv3D(128, (3, 3, 3), activation='relu', padding='same')(x)
-    x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling3D((4, 4, 4))(x)
+    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
     latent_space = Flatten()(x)
 
 
@@ -33,8 +33,7 @@ def monaco_plan(ct, latent_space, num_cp):
     
     mus = []
     for i in range(num_cp):
-        mu = Dense(16, activation='relu')(latent_space)
-        mu = Dense(1, activation='relu')(mu)
+        mu = Dense(1, activation='relu')(latent_space)
         mus.append(mu)
             
     return monaco_param_to_vector(leafs, mus)
