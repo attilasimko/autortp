@@ -44,8 +44,8 @@ def plot_res(ray_matrices, num_cp):
         plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')
 
-n_epochs = 500
-epoch_length = 10000
+n_epochs = 100
+epoch_length = 50000
 
 num_cp = 6
 num_mc = 27 # Fixed for now, anyways. Overwritten later on.
