@@ -10,19 +10,19 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = ''
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 def plot_res(ray_matrices, num_cp):
     x, y = generate_data((32, 32, 32), 20)
     dose = np.zeros_like(y)
     pred = model.predict_on_batch(x)
-    # pred = np.random.rand(774)
+    # pred = np.zeros((774))
     absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
-    leafs = np.zeros_like(leafs)
-    mus = np.ones_like(mus)
+    # leafs = np.zeros_like(leafs)
+    # mus = np.ones_like(mus)
     num_step = 4
     for i in range(0, 64, num_step):
         for j in range(0, 64, num_step):
@@ -45,7 +45,7 @@ def plot_res(ray_matrices, num_cp):
     plt.savefig(f'imgs/{epoch}.png')
 
 n_epochs = 10
-epoch_length = 1
+epoch_length = 100
 
 num_cp = 6
 num_mc = 500
