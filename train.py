@@ -12,16 +12,18 @@ import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+# os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 def plot_res(num_cp):
     x, y = generate_data((32, 32), 10)
     dose = np.zeros_like(y)
     pred = model.predict_on_batch(x)
+    # pred = np.random.rand(774)
     ray_matrices = get_monaco_projections(num_cp)
     absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
     num_step = 8
+    get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, tf.constant([32, 32, 32], dtype=tf.int32))
     for i in range(0, 64, num_step):
         for j in range(0, 64, num_step):
             for k in range(0, 64, num_step):

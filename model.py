@@ -13,9 +13,9 @@ def build_model(batch_size=1, num_cp=6):
     x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(128, (3, 3, 3), activation='relu', padding='same')(x)
     x = MaxPooling3D((4, 4, 4))(x)
-    x = Conv3D(512, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(128, (3, 3, 3), activation='relu', padding='same')(x)
     x = MaxPooling3D((4, 4, 4))(x)
-    x = Conv3D(1024, (3, 3, 3), activation='relu', padding='same')(x)
+    x = Conv3D(256, (3, 3, 3), activation='relu', padding='same')(x)
     latent_space = Flatten()(x)
 
 
