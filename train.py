@@ -14,17 +14,17 @@ tf.compat.v1.enable_eager_execution()
 # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
-def plot_res():
+def plot_res(num_cp):
     x, y = generate_data((32, 32), 10)
     dose = np.zeros_like(y)
     pred = model.predict_on_batch(x)
-    num_cp = 6
     ray_matrices = get_monaco_projections(num_cp)
     absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
-    for i in range(64):
-        for j in range(64):
-            for k in range(64):
+    num_step = 4
+    for i in range(0, 64, num_step):
+        for j in range(0, 64, num_step):
+            for k in range(0, 64, num_step):
                 mc_point = tf.constant([i, j, k], dtype=tf.int32)
                 dose[0, i, j, k] = get_dose_value(num_cp, absorption_matrices, ray_matrices, leafs, mus, mc_point)
 
@@ -45,8 +45,11 @@ def plot_res():
 n_epochs = 10
 epoch_length = 100
 
+num_cp = 6
+num_mc = 100
+
 model = build_model()
-model.compile(loss=rtp_loss(6), optimizer=Adam(learning_rate=0.001))
+model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.001))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
@@ -56,4 +59,4 @@ for epoch in range(n_epochs):
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
-    plot_res()
+    plot_res(num_cp)

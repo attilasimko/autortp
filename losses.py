@@ -1,9 +1,8 @@
 from utils import get_dose_batch, vector_to_monaco_param, get_monaco_projections, get_absorption_matrices, get_dose_value
 import tensorflow as tf
 
-def rtp_loss(num_cp):
+def rtp_loss(num_cp, num_mc):
     ray_matrices = get_monaco_projections(num_cp)
-    num_mc = 1000
     def loss_fn(y_true, y_pred):
         absorption_matrices = get_absorption_matrices(y_true, num_cp)
         leafs, mus = vector_to_monaco_param(y_pred)
