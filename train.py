@@ -20,7 +20,7 @@ def plot_res():
     pred = model.predict(x)
     num_cp = 6
     ray_matrices = get_monaco_projections(num_cp)
-    absorption_matrices = get_absorption_matrices(y[..., 0], num_cp)
+    absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred)
     for i in range(64):
         for j in range(64):
