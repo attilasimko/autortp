@@ -44,13 +44,13 @@ def plot_res(num_cp):
     plt.savefig(f'imgs/{epoch}.png')
 
 n_epochs = 10
-epoch_length = 100
+epoch_length = 10000
 
 num_cp = 6
 num_mc = 100
 
 model = build_model()
-model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.001))
+model.compile(loss=rtp_loss(num_cp, num_mc), optimizer=Adam(learning_rate=0.0001))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 for epoch in range(n_epochs):
