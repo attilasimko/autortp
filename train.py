@@ -37,15 +37,15 @@ def plot_res(ray_matrices, num_cp):
 
     num_slices = 16
     for i in range(num_slices):
-        i = int(i) # * 64 / num_slices)
+        idx = int(i) # * 64 / num_slices)
         plt.subplot(4, 8, i * 2 + 1)
-        plt.title(f"{int(i * 64 / num_slices)}-gt")
-        plt.imshow(y[0, :, :, int(i * 64 / num_slices)], cmap='jet', vmin=0, vmax=1)
+        plt.title(f"{idx}-gt")
+        plt.imshow(y[0, :, :, idx], cmap='jet', vmin=0, vmax=1)
         plt.xticks([])
         plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
-        plt.title(f"{int(i * 64 / num_slices)}-pred")
-        plt.imshow(dose[0, :, :, int(i * 64 / num_slices)], cmap='jet', vmin=0, vmax=1)
+        plt.title(f"{idx}-pred")
+        plt.imshow(dose[0, :, :, idx], cmap='jet', vmin=0, vmax=1)
         plt.xticks([])
         plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')
