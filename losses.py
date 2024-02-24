@@ -1,11 +1,11 @@
 from utils import *
 import tensorflow as tf
 
-def rtp_loss(num_cp, num_mc):
+def rtp_loss(num_cp, num_mc, leaf_length):
     ray_matrices = get_monaco_projections(num_cp)
     def loss_fn(y_true, y_pred):
         absorption_matrices = get_absorption_matrices(y_true, num_cp)
-        leafs, mus = vector_to_monaco_param(y_pred)
+        leafs, mus = vector_to_monaco_param(y_pred, leaf_length, num_cp)
         dose_diffs = 0.0
         mc_points = [tf.constant([16, 16, 16], dtype=tf.int32),
                         tf.constant([16, 16, 32], dtype=tf.int32),

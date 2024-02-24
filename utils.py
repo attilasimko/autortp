@@ -13,9 +13,10 @@ def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
     dose = 0.0
     for cp_idx in range(len(ray_matrices)):
         absorption_value = absorption_matrices[cp_idx][:, mc_point[0], mc_point[1], mc_point[2]]
+        leaf_idx = mc_point[2]
         ray_idx = tf.cast(ray_matrices[cp_idx][:, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
-        ray_idx -= tf.cast(64 * mc_point[2], dtype=tf.float16)
-        cond_leafs = tf.logical_and(tf.greater_equal(ray_idx, leafs[:, 0, mc_point[2], cp_idx] * 32), tf.less_equal(ray_idx, 64 - leafs[:, 1, mc_point[2], cp_idx] * 32))
+        ray_idx -= tf.cast(64 * leaf_idx, dtype=tf.float16)
+        cond_leafs = tf.logical_and(tf.greater_equal(ray_idx, leafs[:, 0, leaf_idx, cp_idx] * 32), tf.less_equal(ray_idx, 64 - leafs[:, 1, leaf_idx, cp_idx] * 32))
         dep_value = mus[:, 0, cp_idx] * absorption_value
         dose += tf.reduce_sum(tf.where(cond_leafs, dep_value, 0))
     return dose
@@ -54,7 +55,7 @@ def monaco_param_to_vector(leafs, mus):
 
     return tf.concat([tf.reshape(leafs, [-1]), tf.reshape(mus, [-1])], -1)
 
-def vector_to_monaco_param(vec, num_cp=6):
-    leafs = tf.reshape(vec[:64 * 2 * num_cp], [1, 2, 64, num_cp])
-    mus = tf.reshape(vec[64 * 2 * 6:], [1, 1, num_cp])
+def vector_to_monaco_param(vec, leaf_length=64, num_cp=6):
+    leafs = tf.reshape(vec[:leaf_length * 2 * num_cp], [1, 2, leaf_length, num_cp])
+    mus = tf.reshape(vec[leaf_length * 2 * num_cp:], [1, 1, num_cp])
     return leafs, mus
