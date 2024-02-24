@@ -1,6 +1,45 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.ndimage import rotate
+from data import generate_data
 import tensorflow as tf
+
+
+def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
+    x, y = generate_data((32, 32, 32), 20)
+    num_step = 4
+    dose = np.zeros_like(y)
+    pred = model.predict_on_batch(x)
+    # pred = np.zeros((774))
+    absorption_matrices = get_absorption_matrices(y, num_cp)
+    leafs, mus = vector_to_monaco_param(pred, leaf_length, num_cp)
+    # leafs = np.ones_like(leafs)
+    # mus = np.ones_like(mus)
+    # for i in range(num_cp):
+    #     if i % 2 == 0:
+    #         leafs[:, 0, i, i] = 0.5
+    #     else:
+    #         leafs[:, 1, i, i] = 0.5
+    for i in range(0, 64, num_step):
+        for j in range(0, 64, num_step):
+            for k in range(0, 64, num_step):
+                mc_point = tf.constant([i, j, k], dtype=tf.int32)
+                dose[0, i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point)
+
+    num_slices = 16
+    for i in range(num_slices):
+        idx = int(i * 64 / num_slices)
+        plt.subplot(4, 8, i * 2 + 1)
+        plt.title(f"{idx}-gt")
+        plt.imshow(y[0, :, :, idx], cmap='jet', vmin=0, vmax=1)
+        plt.xticks([])
+        plt.yticks([])
+        plt.subplot(4, 8, i * 2 + 2)
+        plt.title(f"{idx}-pred")
+        plt.imshow(dose[0, :, :, idx], cmap='jet', vmin=0, vmax=1)
+        plt.xticks([])
+        plt.yticks([])
+    plt.savefig(f'imgs/{epoch}.png')
 
 def get_absorption_matrices(ct, num_cp):
     rotated_arrays = []
