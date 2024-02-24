@@ -15,7 +15,7 @@ tf.compat.v1.enable_eager_execution()
 
 
 n_epochs = 100
-epoch_length = 500
+epoch_length = 50000
 batch_size = 1
 
 num_cp = 6
