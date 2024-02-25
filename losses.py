@@ -6,9 +6,9 @@ def rtp_loss(num_cp, num_mc, leaf_length):
     def loss_fn(y_true, y_pred):
         absorption_matrices = get_absorption_matrices(y_true, num_cp)
         leafs, mus = vector_to_monaco_param(y_pred, leaf_length, num_cp)
-        dose_diffs = tf.cast([0.0], tf.float16)
+        dose_diffs = 0.0
         for batch_idx in range(y_true.shape[0]):
-            dose_values = tf.cast(tf.unique(tf.reshape(y_true[batch_idx, ...], [-1])), tf.float16)
+            dose_values = tf.unique(tf.reshape(y_true[batch_idx, ...], [-1]))
             for dose_value in dose_values:
                 true_dose = tf.cast(dose_value, tf.float16)
                 boolean_array = tf.equal(y_true[batch_idx, ...], dose_value)
