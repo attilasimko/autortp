@@ -15,12 +15,16 @@ tf.compat.v1.enable_eager_execution()
 
 
 n_epochs = 100
-epoch_length = 50000
+epoch_length = 500
 batch_size = 1
 
+# Number of control points
 num_cp = 6
+# Length of each leaf
 leaf_length = 64
-num_mc = 100 # Fixed for now, anyways. Overwritten later on.
+# Number of Monte Carlo points
+num_mc = 10000
+# Generate ray matrices for each control point
 ray_matrices = get_monaco_projections(num_cp)
 
 model = build_model(batch_size, num_cp)
