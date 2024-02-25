@@ -15,7 +15,7 @@ import tensorflow as tf
 
 
 n_epochs = 100
-epoch_length = 100
+epoch_length = 1000
 batch_size = 1
 
 # Number of control points
@@ -23,7 +23,7 @@ num_cp = 6
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
-num_mc = 10000
+num_mc = 1000
 # Generate ray matrices for each control point
 ray_matrices = get_monaco_projections(num_cp)
 
