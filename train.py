@@ -20,7 +20,7 @@ batch_size = 1
 
 num_cp = 6
 leaf_length = 64
-num_mc = 27 # Fixed for now, anyways. Overwritten later on.
+num_mc = 100 # Fixed for now, anyways. Overwritten later on.
 ray_matrices = get_monaco_projections(num_cp)
 
 model = build_model(batch_size, num_cp)
