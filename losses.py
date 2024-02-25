@@ -8,8 +8,7 @@ def rtp_loss(num_cp, num_mc, leaf_length):
         leafs, mus = vector_to_monaco_param(y_pred, leaf_length, num_cp)
         dose_diffs = 0.0
         for batch_idx in range(y_true.shape[0]):
-            dose_values = tf.unique(y_true[batch_idx, ...])
-
+            dose_values = tf.unique(tf.reshape(y_true[batch_idx, ...], [-1]))
             for dose_value in dose_values:
                 boolean_array = tf.equal(y_true[batch_idx, ...], dose_value)
                 true_indices = tf.where(boolean_array)
