@@ -95,6 +95,6 @@ def monaco_param_to_vector(leafs, mus):
     return tf.concat([tf.reshape(leafs, [-1]), tf.reshape(mus, [-1])], -1)
 
 def vector_to_monaco_param(vec, leaf_length=64, num_cp=6, batch_size=1):
-    leafs = tf.reshape(vec[:leaf_length * 2 * num_cp], [batch_size, 2, leaf_length, num_cp])
-    mus = tf.reshape(vec[leaf_length * 2 * num_cp:], [batch_size, 1, num_cp])
+    leafs = tf.reshape(vec[:batch_size * leaf_length * 2 * num_cp], [batch_size, 2, leaf_length, num_cp])
+    mus = tf.reshape(vec[batch_size * leaf_length * 2 * num_cp:], [batch_size, 1, num_cp])
     return leafs, mus
