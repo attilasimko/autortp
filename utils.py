@@ -28,14 +28,15 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
     num_slices = 16
     for i in range(num_slices):
         idx = int(i * 64 / num_slices)
+        max_dose = np.max(y[0, :, :, :, 0])
         plt.subplot(4, 8, i * 2 + 1)
         plt.title(f"{idx}-gt")
-        plt.imshow(y[0, :, :, idx], cmap='jet', vmin=0, vmax=1)
+        plt.imshow(y[0, :, :, idx], cmap='jet', vmin=0, vmax=max_dose)
         plt.xticks([])
         plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
         plt.title(f"{idx}-pred")
-        plt.imshow(dose[:, :, idx], cmap='jet', vmin=0, vmax=1)
+        plt.imshow(dose[:, :, idx], cmap='jet', vmin=0, vmax=max_dose)
         plt.xticks([])
         plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')

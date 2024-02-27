@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def generate_data(batch_size=1, center=None, sigma=None):
     data = []
     dose = []
-    dose_scale = 0.3
+    dose_scale = 1.2
     shape = (64, 64, 64)
     ct = np.ones(shape, dtype=float)
     x, y, z = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2]))
