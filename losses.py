@@ -1,23 +1,19 @@
 from utils import *
 import tensorflow as tf
 
-def rtp_loss(num_cp, num_mc, leaf_length):
-    ray_matrices = get_monaco_projections(num_cp)
+def rtp_loss(ray_matrices, num_cp, num_mc, leaf_length):
     def loss_fn(y_true, y_pred):
-        absorption_matrices = get_absorption_matrices(y_true, num_cp)
         leafs, mus = vector_to_monaco_param(y_pred, leaf_length, num_cp)
         dose_diffs = 0.0
         for batch_idx in range(y_true.shape[0]):
-            dose_values = tf.unique(tf.reshape(y_true[batch_idx, ...], [-1]))
+            absorption_matrices = get_absorption_matrices(y_true[batch_idx, ..., 0], num_cp)
+            dose_values, _ = tf.unique(tf.reshape(y_true[batch_idx, ..., 0], [-1]))
             for dose_value in dose_values:
-                true_dose = tf.cast(dose_value, tf.float16)[0]
-                boolean_array = tf.equal(y_true[batch_idx, ...], true_dose)
-                true_indices = tf.where(boolean_array)
-                for mc_idx in range(tf.minimum(num_mc, tf.size(true_indices))):
-                    mc_point = tf.random.shuffle(true_indices)[mc_idx]
-                    # true_dose = y_true[:, mc_point[0], mc_point[1], mc_point[2]]
+                dose_idxes = tf.where(tf.equal(y_true[batch_idx, ..., 0], dose_value))
+                for mc_idx in range(tf.minimum(num_mc, tf.size(dose_idxes))):
+                    mc_point = tf.random.shuffle(dose_idxes)[mc_idx]
                     pred_dose = get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point)
-                    dose_diffs += tf.cast(tf.abs(true_dose - pred_dose) / num_mc, tf.float32)
+                    dose_diffs += tf.abs(tf.cast(dose_value, tf.float16) - pred_dose) / (num_mc * y_true.shape[0])
 
         return dose_diffs
     return loss_fn

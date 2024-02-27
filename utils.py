@@ -4,14 +4,13 @@ from scipy.ndimage import rotate
 from data import generate_data
 import tensorflow as tf
 
-
 def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
-    x, y = generate_data((32, 32, 32), 20)
+    x, y = generate_data(1, (32, 32, 32), 20)
     num_step = 4
-    dose = np.zeros_like(y)
+    dose = np.zeros_like(y)[0, ..., 0]
     pred = model.predict_on_batch(x)
     # pred = np.zeros((774))
-    absorption_matrices = get_absorption_matrices(y, num_cp)
+    absorption_matrices = get_absorption_matrices(y[0, ..., 0], num_cp)
     leafs, mus = vector_to_monaco_param(pred, leaf_length, num_cp)
     # leafs = np.ones_like(leafs)
     # mus = np.ones_like(mus)
@@ -24,7 +23,7 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
         for j in range(0, 64, num_step):
             for k in range(0, 64, num_step):
                 mc_point = tf.constant([i, j, k], dtype=tf.int32)
-                dose[0, i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point)
+                dose[i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point)
 
     num_slices = 16
     for i in range(num_slices):
@@ -36,14 +35,14 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
         plt.yticks([])
         plt.subplot(4, 8, i * 2 + 2)
         plt.title(f"{idx}-pred")
-        plt.imshow(dose[0, :, :, idx], cmap='jet', vmin=0, vmax=1)
+        plt.imshow(dose[:, :, idx], cmap='jet', vmin=0, vmax=1)
         plt.xticks([])
         plt.yticks([])
     plt.savefig(f'imgs/{epoch}.png')
 
 def get_absorption_matrices(ct, num_cp):
     rotated_arrays = []
-    for angle_idx in range(num_cp):
+    for _ in range(num_cp):
         rotated_arrays.append(tf.ones_like(ct, dtype=np.float16))
 
     return rotated_arrays
@@ -51,9 +50,9 @@ def get_absorption_matrices(ct, num_cp):
 def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
     dose = 0.0
     for cp_idx in range(len(ray_matrices)):
-        absorption_value = absorption_matrices[cp_idx][:, mc_point[0], mc_point[1], mc_point[2]]
+        absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]]
         leaf_idx = mc_point[2]
-        ray_idx = tf.cast(ray_matrices[cp_idx][:, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
+        ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
         ray_idx -= tf.cast(64 * leaf_idx, dtype=tf.float16)
         cond_leafs = tf.logical_and(tf.greater_equal(ray_idx, leafs[:, 0, leaf_idx, cp_idx] * 32), tf.less_equal(ray_idx, 64 - leafs[:, 1, leaf_idx, cp_idx] * 32))
         dep_value = mus[:, 0, cp_idx] * absorption_value
