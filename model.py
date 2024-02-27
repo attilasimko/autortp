@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Flatten, Dense, Dropout, Reshape
-tf.keras.mixed_precision.set_global_policy('mixed_float16')
 import numpy as np
 from utils import get_monaco_projections, monaco_param_to_vector
 
