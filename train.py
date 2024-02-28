@@ -14,7 +14,7 @@ tf.keras.mixed_precision.set_global_policy('mixed_float16')
 # os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 
-n_epochs = 100
+n_epochs = 5
 epoch_length = 1000
 batch_size = 12
 
