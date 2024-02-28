@@ -23,7 +23,7 @@ num_cp = 12
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
-num_mc = 50
+num_mc = 100
 # Generate ray matrices for each control point
 ray_matrices = get_monaco_projections(num_cp)
 
