@@ -69,7 +69,7 @@ def get_monaco_projections(num_cp):
     indeces = np.swapaxes(indeces, 0, 2)
 
     for angle_idx in range(num_cp):
-        array = np.expand_dims(rotate(indeces, angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0, cval=-1), 0)
+        array = np.expand_dims(rotate(indeces, angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest'), 0)
         rotated_arrays.append(array)
 
     return [tf.constant(x, dtype=tf.float16) for x in rotated_arrays]

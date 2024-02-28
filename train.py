@@ -9,9 +9,9 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
 import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = ''
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 
 n_epochs = 100
@@ -19,7 +19,7 @@ epoch_length = 1000
 batch_size = 12
 
 # Number of control points
-num_cp = 6
+num_cp = 12
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
