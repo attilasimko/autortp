@@ -15,7 +15,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 5
 epoch_length = 1000
-batch_size = 64
+batch_size = 6
 learning_rate = 0.00001
 
 # Number of control points
