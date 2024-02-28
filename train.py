@@ -13,10 +13,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
-n_epochs = 5
+n_epochs = 50
 epoch_length = 1000
 batch_size = 6
-learning_rate = 0.00001
+learning_rate = 0.0001
 
 # Number of control points
 num_cp = 12
