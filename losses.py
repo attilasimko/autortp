@@ -11,10 +11,9 @@ def rtp_loss(ray_matrices, num_cp, num_mc, leaf_length):
             for dose_value in dose_values:
                 dose_idxes = tf.where(tf.equal(y_true[batch_idx, ..., 0], dose_value))
                 dose_idxes = tf.random.shuffle(dose_idxes)
-                for mc_idx in range(tf.minimum(num_mc, dose_idxes.shape[0])):
+                for mc_idx in range(tf.minimum(num_mc, tf.shape(dose_idxes)[0])):
                     mc_point = dose_idxes[mc_idx]
                     pred_dose = get_dose_value(absorption_matrices, ray_matrices, leafs[batch_idx, ...], mus[batch_idx, ...], mc_point)
                     dose_diffs += tf.cast(tf.abs(tf.cast(dose_value, tf.float16) - pred_dose) / (num_mc * y_true.shape[0]), tf.float32)
-
         return dose_diffs
     return loss_fn
