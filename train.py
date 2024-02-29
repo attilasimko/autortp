@@ -11,7 +11,7 @@ import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 n_epochs = 50
 epoch_length = 1000
@@ -26,6 +26,12 @@ leaf_length = 64
 num_mc = 100
 # Generate ray matrices for each control point
 ray_matrices = get_monaco_projections(num_cp)
+
+# Debug part
+# loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
+# _, y = generate_data(batch_size)
+# pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp)
+# loss(y, pred)
 
 model = build_model(batch_size, num_cp)
 model.compile(loss=rtp_loss(ray_matrices, num_cp, num_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
