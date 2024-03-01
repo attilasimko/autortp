@@ -11,7 +11,7 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
     dose = np.zeros_like(y)[0, ..., 0]
     pred = model.predict_on_batch(x)
     # pred = np.zeros((774))
-    absorption_matrices = get_absorption_matrices(y[0, ..., 1], num_cp)
+    absorption_matrices = get_absorption_matrices(y, num_cp)
     leafs, mus = vector_to_monaco_param(pred, leaf_length, num_cp)
     # leafs = np.ones_like(leafs)
     # mus = np.ones_like(mus)
