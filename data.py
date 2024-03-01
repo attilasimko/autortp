@@ -18,6 +18,7 @@ def generate_data(batch_size=1, center=None, sigma=None):
         gaussian = np.exp(-d2 / (2 * sigma**2))
         gaussian /= np.max(gaussian)
         mask = np.array(gaussian > 0.5, dtype=float)
+        ct = ct * mask
         data.append(np.stack([ct, mask], axis=-1))
-        dose.append(np.expand_dims(dose_scale*mask, -1))
+        dose.append(np.stack([dose_scale*mask, ct], axis=-1))
     return np.stack(data, 0), np.stack(dose, 0)

@@ -10,7 +10,7 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
     dose = np.zeros_like(y)[0, ..., 0]
     pred = model.predict_on_batch(x)
     # pred = np.zeros((774))
-    absorption_matrices = get_absorption_matrices(y[0, ..., 0], num_cp)
+    absorption_matrices = get_absorption_matrices(y[0, ..., 1], num_cp)
     leafs, mus = vector_to_monaco_param(pred, leaf_length, num_cp)
     # leafs = np.ones_like(leafs)
     # mus = np.ones_like(mus)
@@ -43,8 +43,13 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
 
 def get_absorption_matrices(ct, num_cp):
     rotated_arrays = []
-    for _ in range(num_cp):
-        rotated_arrays.append(tf.ones_like(ct, dtype=np.float16))
+    for idx in range(num_cp):
+        array = rotate(ct, idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
+        array = tf.cumsum(array, axis=0)
+        array = tf.where(tf.less(array, 1), 0, 1 / tf.sqrt(array))
+        array = rotate(array, - idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
+        array = ct * array
+        rotated_arrays.append(tf.cast(array, dtype=np.float16))
 
     return rotated_arrays
 

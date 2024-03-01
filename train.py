@@ -14,7 +14,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = ''
 
 n_epochs = 50
-epoch_length = 1000
+epoch_length = 100
 batch_size = 6
 learning_rate = 0.000001
 
@@ -23,15 +23,16 @@ num_cp = 12
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
-num_mc = 100
+ratio_mc = 0.01
+num_mc = int(ratio_mc * (64*64*64))
 # Generate ray matrices for each control point
 ray_matrices = get_monaco_projections(num_cp)
 
 # Debug part
-# loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
-# _, y = generate_data(batch_size)
-# pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp)
-# loss(y, pred)
+loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
+_, y = generate_data(batch_size)
+pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp)
+loss(y, pred)
 
 model = build_model(batch_size, num_cp)
 model.compile(loss=rtp_loss(ray_matrices, num_cp, num_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
