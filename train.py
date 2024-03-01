@@ -14,7 +14,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 50
-epoch_length = 10
+epoch_length = 1
 batch_size = 6
 learning_rate = 0.000001
 
@@ -29,10 +29,11 @@ num_mc = int(ratio_mc * (64*64*64))
 ray_matrices = get_monaco_projections(num_cp)
 
 # Debug part
-# loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
-# _, y = generate_data(batch_size)
-# pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp)
-# loss(y, pred)
+loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
+_, y = generate_data(batch_size)
+y = np.concatenate([y, get_absorption_matrices(y, num_cp)], -1)
+pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp)
+loss(y, pred)
 
 model = build_model(batch_size, num_cp)
 model.compile(loss=rtp_loss(ray_matrices, num_cp, num_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
@@ -42,6 +43,7 @@ for epoch in range(n_epochs):
     training_loss = []
     for i in range(epoch_length):
         x, y = generate_data(batch_size)
+        y = np.concatenate([y, get_absorption_matrices(y, num_cp)], -1)
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     plot_res(model, ray_matrices, leaf_length, num_cp, epoch)

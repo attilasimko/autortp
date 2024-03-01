@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import rotate
 from data import generate_data
 import tensorflow as tf
+tf.keras.mixed_precision.set_global_policy('mixed_float16')
 
 def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
     x, y = generate_data(1, (32, 32, 32), 20)
@@ -23,7 +24,7 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
         for j in range(0, 64, num_step):
             for k in range(0, 64, num_step):
                 mc_point = tf.constant([i, j, k], dtype=tf.int32)
-                dose[i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value(absorption_matrices, ray_matrices, leafs[0, ...], mus[0, ...], mc_point)
+                dose[i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value([matrix[0, ...] for matrix in absorption_matrices], ray_matrices, leafs[0, ...], mus[0, ...], mc_point)
 
     num_slices = 16
     for i in range(num_slices):
@@ -42,21 +43,24 @@ def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
     plt.savefig(f'imgs/{epoch}.png')
 
 def get_absorption_matrices(ct, num_cp):
-    rotated_arrays = []
-    for idx in range(num_cp):
-        array = rotate(ct, idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
-        array = tf.cumsum(array, axis=0)
-        array = tf.where(tf.less(array, 1), 0, 1 / tf.sqrt(array))
-        array = rotate(array, - idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
-        array = ct * array
-        rotated_arrays.append(tf.cast(array, dtype=np.float16))
+    batches = []
+    for batch in range(ct.shape[0]):
+        rotated_arrays = []
+        for idx in range(num_cp):
+            array = rotate(ct[batch, ...], idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
+            array = tf.cumsum(array, axis=0)
+            array = tf.where(tf.less(array, 1), 0, 1 / tf.sqrt(array))
+            array = rotate(array, - idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
+            array = ct[batch, ...] * array
+            rotated_arrays.append(tf.cast(array, dtype=np.float16))
+        batches.append(tf.concat(rotated_arrays, axis=-1))
 
-    return rotated_arrays
+    return tf.stack(batches, 0)
 
 def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
     dose = 0.0
     for cp_idx in range(len(ray_matrices)):
-        absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2]]
+        absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2], 0]
         leaf_idx = mc_point[2]
         ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
         ray_idx -= tf.cast(64 * leaf_idx, dtype=tf.float16)
