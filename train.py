@@ -30,8 +30,8 @@ ray_matrices = get_monaco_projections(num_cp)
 
 # Debug part
 # loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
-# _, y = generate_data(batch_size)
-# y = np.concatenate([y, get_absorption_matrices(y, num_cp)], -1)
+# x, y = generate_data(batch_size)
+# y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
 # pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp, dtype=np.float16)
 # loss(y, pred)
 
@@ -43,7 +43,7 @@ for epoch in range(n_epochs):
     training_loss = []
     for i in range(epoch_length):
         x, y = generate_data(batch_size)
-        y = np.concatenate([y, get_absorption_matrices(y, num_cp)], -1)
+        y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     plot_res(model, ray_matrices, leaf_length, num_cp, epoch)

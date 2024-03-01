@@ -11,14 +11,14 @@ def generate_data(batch_size=1, center=None, sigma=None):
 
     for batch in range(batch_size):
         if sigma is None:
-            sigma = np.random.randint(3, 30)
+            sigma = np.random.randint(5, 30)
         if center is None:
-            center = np.random.randint(0, 64, size=3)
+            center = np.random.randint(12, 52, size=3)
         d2 = (x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2
         gaussian = np.exp(-d2 / (2 * sigma**2))
         gaussian /= np.max(gaussian)
         mask = np.array(gaussian > 0.5, dtype=float)
-        ct = ct * mask
+        ct = np.where(mask, 1.0, 0.2)
         data.append(np.expand_dims(np.stack([ct, mask], axis=-1), axis=0))
         dose.append(np.expand_dims(np.expand_dims(dose_scale*mask, axis=0), axis=-1))
     return np.concatenate(data, 0), np.concatenate(dose, 0)
