@@ -29,11 +29,11 @@ num_mc = int(ratio_mc * (64*64*64))
 ray_matrices = get_monaco_projections(num_cp)
 
 # Debug part
-loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
-_, y = generate_data(batch_size)
-y = np.concatenate([y, get_absorption_matrices(y, num_cp)], -1)
-pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp)
-loss(y, pred)
+# loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
+# _, y = generate_data(batch_size)
+# y = np.concatenate([y, get_absorption_matrices(y, num_cp)], -1)
+# pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp)
+# loss(y, pred)
 
 model = build_model(batch_size, num_cp)
 model.compile(loss=rtp_loss(ray_matrices, num_cp, num_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
