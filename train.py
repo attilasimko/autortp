@@ -14,7 +14,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 50
-epoch_length = 10
+epoch_length = 100
 batch_size = 6
 learning_rate = 0.000001
 
@@ -23,7 +23,7 @@ num_cp = 12
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
-ratio_mc = 0.0001
+ratio_mc = 0.01
 num_mc = int(ratio_mc * (64*64*64))
 # Generate ray matrices for each control point
 ray_matrices = get_monaco_projections(num_cp)
