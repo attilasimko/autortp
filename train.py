@@ -11,7 +11,7 @@ import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = ''
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 50
 epoch_length = 10
