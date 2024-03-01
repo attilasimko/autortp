@@ -8,7 +8,6 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
 import tensorflow as tf
-tf.compat.v1.enable_eager_execution()
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"

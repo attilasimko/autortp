@@ -1,5 +1,6 @@
 from utils import *
 import tensorflow as tf
+tf.compat.v1.enable_eager_execution()
 
 def rtp_loss(ray_matrices, num_cp, num_mc, leaf_length):
     def loss_fn(y_true, y_pred):
