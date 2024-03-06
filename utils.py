@@ -2,45 +2,121 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import rotate
 from data import generate_data
+from matplotlib import animation
 import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
 
-def plot_res(model, ray_matrices, leaf_length, num_cp, epoch):
+ 
+class save_gif():
+    def __init__(self, absorption_matrix, delivered_dose, ground_truth, ray_matrix, leafs, mus, experiment, epoch, save_path):
+        self.absorption_matrix = absorption_matrix[..., 0]
+        self.delivered_dose = delivered_dose
+        self.ground_truth = ground_truth[0, ..., 0]
+        self.leafs = leafs
+        self.mus = mus
+        self.experiment = experiment
+        self.epoch = epoch
+        self.save_path = save_path
+        self.mlc = np.zeros((64, 64), dtype=np.bool)
+        for i in range(64):
+            for j in range(64):
+                if i > leafs[0, 0, j] * 32 and i < 64 - leafs[0, 1, j] * 32:
+                    self.mlc[i, j] = True
+
+
+        indeces = np.where(self.mlc)
+        x, y = np.meshgrid(np.arange(64), np.arange(64))
+        indeces = (x * 64 + y)[self.mlc]
+        self.ray_matrix = np.zeros_like(ray_matrix)
+        for i in range(ray_matrix.shape[2]):
+            self.ray_matrix[:, :, i] = np.isin(ray_matrix[:, :, i], indeces).astype(np.float16)
+            indeces += 64
+        self.ray_matrix *= self.mus[0, 0]
+
+        self.fig, axx = plt.subplots(2, 2)
+        self.fps = 12
+        self.num_frames = ground_truth.shape[3]
+        self.makegif(save_path, experiment, epoch)
+    
+    def makegif(self, save_path, experiment, epoch):
+        anim = animation.FuncAnimation(self.fig, self.animate, init_func=self.init,
+                                        frames=self.num_frames, interval=1000/self.fps)
+        anim.save(save_path, writer=animation.PillowWriter(fps=self.fps))
+        experiment.log_image(save_path, step=epoch, overwrite=True)
+        plt.close()
+    
+    def animate(self, i):
+        dose_slice = self.delivered_dose[:, :, i]
+        gt_slice = self.ground_truth[:, :, i]
+        ray_slice = self.ray_matrix[:, :, i]
+
+        self.im2.set_array(ray_slice)
+        self.im3.set_array(gt_slice)
+        self.im4.set_array(dose_slice)
+        return [self.im2, self.im3, self.im4]
+
+    def init(self):
+        mono_font = {'fontname':'monospace'}
+        self.title = self.fig.suptitle("", fontsize=4, **mono_font)
+        vmin = np.min(self.ground_truth)
+        vmax = np.max(self.ground_truth)
+        dose_slice = self.delivered_dose[:, :, 0]
+        gt_slice = self.ground_truth[:, :, 0]
+        ray_slice = self.ray_matrix[:, :, 0]
+        
+        plt.subplot(221)
+        plt.tick_params(left=False,
+                        bottom=False,
+                        labelleft=False,
+                        labelbottom=False)
+        plt.imshow(self.mlc, cmap="gray", vmin=0, vmax=1, interpolation="none")
+
+
+        plt.subplot(222)
+        plt.tick_params(left=False,
+                        bottom=False,
+                        labelleft=False,
+                        labelbottom=False)
+        self.im2 = plt.imshow(ray_slice, cmap="gray", vmin=0, vmax=1, interpolation="none")
+
+
+        plt.subplot(223)
+        plt.tick_params(left=False,
+                        bottom=False,
+                        labelleft=False,
+                        labelbottom=False)
+        self.im3 = plt.imshow(gt_slice, cmap="gray", vmin=vmin, vmax=vmax, interpolation="none")
+
+
+        plt.subplot(224)
+        plt.tick_params(left=False,
+                        bottom=False,
+                        labelleft=False,
+                        labelbottom=False)
+        self.im4 = plt.imshow(dose_slice, cmap="gray", vmin=vmin, vmax=vmax, interpolation="none")
+
+
+def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     x, y = generate_data(1, (32, 32, 32), 20)
-    num_step = 4
+    num_step = 2
     dose = np.zeros_like(y)[0, ..., 0]
+
+    # pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
     pred = model.predict_on_batch(x)
+
     # pred = np.zeros((774))
     absorption_matrices = np.split(get_absorption_matrices(x[..., 0:1], num_cp), num_cp, -1)
     leafs, mus = vector_to_monaco_param(pred, leaf_length, num_cp)
-    # leafs = np.ones_like(leafs)
-    # mus = np.ones_like(mus)
-    # for i in range(num_cp):
-    #     if i % 2 == 0:
-    #         leafs[:, 0, i, i] = 0.5
-    #     else:
-    #         leafs[:, 1, i, i] = 0.5
+    
     for i in range(0, 64, num_step):
         for j in range(0, 64, num_step):
             for k in range(0, 64, num_step):
                 mc_point = tf.constant([i, j, k], dtype=tf.int32)
                 dose[i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value([matrix[0, ...] for matrix in absorption_matrices], ray_matrices, leafs[0, ...], mus[0, ...], mc_point)
-
-    num_slices = 16
-    for i in range(num_slices):
-        idx = int(i * 64 / num_slices)
-        max_dose = np.max(y[0, :, :, :, 0])
-        plt.subplot(4, 8, i * 2 + 1)
-        plt.title(f"{idx}-gt")
-        plt.imshow(y[0, :, :, idx], cmap='jet', vmin=0, vmax=max_dose)
-        plt.xticks([])
-        plt.yticks([])
-        plt.subplot(4, 8, i * 2 + 2)
-        plt.title(f"{idx}-pred")
-        plt.imshow(dose[:, :, idx], cmap='jet', vmin=0, vmax=max_dose)
-        plt.xticks([])
-        plt.yticks([])
-    plt.savefig(f'imgs/{epoch}.png')
+    
+    for i in range(num_cp):
+        save_gif(absorption_matrices[i][0, ...], dose, y, ray_matrices[i][0, ...], leafs[..., i], mus[..., i], experiment, epoch, f"imgs/{i}.gif")
+    
 
 def get_absorption_matrices(ct, num_cp):
     batches = []
