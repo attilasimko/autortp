@@ -97,7 +97,7 @@ class save_gif():
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     x, y = generate_data(1, (32, 32, 32), 20)
-    num_step = 8
+    num_step = 2
     dose = np.zeros_like(y)[0, ..., 0]
 
     # pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)

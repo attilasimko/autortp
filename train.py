@@ -14,8 +14,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
-n_epochs = 2
-epoch_length = 100
+n_epochs = 50
+epoch_length = 50
 batch_size = 6
 learning_rate = 0.00001
 
@@ -47,11 +47,11 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 
 for epoch in range(n_epochs):
     training_loss = []
-    # for i in range(epoch_length):
-    #     x, y = generate_data(batch_size)
-    #     y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
-    #     loss = model.train_on_batch(x, y)
-    #     training_loss.append(loss)
+    for i in range(epoch_length):
+        x, y = generate_data(batch_size)
+        y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
+        loss = model.train_on_batch(x, y)
+        training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     experiment.log_metric("loss", np.mean(training_loss), step=epoch)
     plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch)
