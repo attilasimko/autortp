@@ -100,8 +100,8 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     num_step = 8
     dose = np.zeros_like(y)[0, ..., 0]
 
-    pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
-    # pred = model.predict_on_batch(x)
+    # pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
+    pred = model.predict_on_batch(x)
 
     # pred = np.zeros((774))
     absorption_matrices = np.split(get_absorption_matrices(x[..., 0:1], num_cp), num_cp, -1)
