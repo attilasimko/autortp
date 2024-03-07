@@ -35,7 +35,7 @@ class save_gif():
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
-        self.num_frames = ground_truth.shape[3]
+        self.num_frames = 3 # ground_truth.shape[3]
         self.makegif(save_path, experiment, epoch)
     
     def makegif(self, save_path, experiment, epoch):
