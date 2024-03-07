@@ -6,7 +6,7 @@ from matplotlib import animation
 import matplotlib
 import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
-matplotlib.use('qtagg')
+matplotlib.use('agg')
 
  
 class save_gif():
