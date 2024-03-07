@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import rotate
 from data import generate_data
 from matplotlib import animation
+import matplotlib
 import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
+matplotlib.use('qtagg')
 
  
 class save_gif():
@@ -24,14 +26,11 @@ class save_gif():
                     self.mlc[i, j] = True
 
 
-        indeces = np.where(self.mlc)
         x, y = np.meshgrid(np.arange(64), np.arange(64))
-        indeces = (x * 64 + y)[self.mlc]
         self.ray_matrix = np.zeros_like(ray_matrix)
         for i in range(ray_matrix.shape[2]):
-            self.ray_matrix[:, :, i] = np.isin(ray_matrix[:, :, i], indeces).astype(np.float16)
-            indeces += 64
-        self.ray_matrix *= self.mus[0, 0]
+            self.ray_matrix[:, :, i] = np.isin(ray_matrix[:, :, i], range(int((i * 64) + (leafs[0, 0, i] * 32)), int((i * 64) + (64 - leafs[0, 1, i] * 32)))).astype(np.float16)
+        self.ray_matrix = np.where(self.ray_matrix > 0, self.mus[0, 0], 0)
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
@@ -98,11 +97,11 @@ class save_gif():
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     x, y = generate_data(1, (32, 32, 32), 20)
-    num_step = 2
+    num_step = 8
     dose = np.zeros_like(y)[0, ..., 0]
 
-    # pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
-    pred = model.predict_on_batch(x)
+    pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
+    # pred = model.predict_on_batch(x)
 
     # pred = np.zeros((774))
     absorption_matrices = np.split(get_absorption_matrices(x[..., 0:1], num_cp), num_cp, -1)
