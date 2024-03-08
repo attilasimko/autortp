@@ -25,7 +25,8 @@ class save_gif():
                 if i > leafs[0, 0, j] * 32 and i < 64 - leafs[0, 1, j] * 32:
                     self.mlc[i, j] = True
 
-
+        print("Lower leafs: ", leafs[0, 0, :])
+        print("Upper leafs: ", leafs[0, 1, :])
         x, y = np.meshgrid(np.arange(64), np.arange(64))
         self.ray_matrix = np.zeros_like(ray_matrix)
         for i in range(ray_matrix.shape[2]):
@@ -97,7 +98,7 @@ class save_gif():
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     x, y = generate_data(1, (32, 32, 32), 20)
-    num_step = 2
+    num_step = 8
     dose = np.zeros_like(y)[0, ..., 0]
 
     # pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
