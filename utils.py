@@ -25,9 +25,8 @@ class save_gif():
                 if i > leafs[0, 0, j] * 32 and i < 64 - leafs[0, 1, j] * 32:
                     self.mlc[i, j] = True
 
-        print("Lower leafs: ", leafs[0, 0, :])
-        print("Upper leafs: ", leafs[0, 1, :])
-        x, y = np.meshgrid(np.arange(64), np.arange(64))
+        # print("Lower leafs: ", leafs[0, 0, :])
+        # print("Upper leafs: ", leafs[0, 1, :])
         self.ray_matrix = np.zeros_like(ray_matrix)
         for i in range(ray_matrix.shape[2]):
             self.ray_matrix[:, :, i] = np.isin(ray_matrix[:, :, i], range(int((i * 64) + (leafs[0, 0, i] * 32)), int((i * 64) + (64 - leafs[0, 1, i] * 32)))).astype(np.float16)
