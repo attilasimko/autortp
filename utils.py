@@ -6,11 +6,11 @@ from matplotlib import animation
 import matplotlib
 import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
-matplotlib.use('agg')
 
  
 class save_gif():
     def __init__(self, absorption_matrix, delivered_dose, ground_truth, ray_matrix, leafs, mus, experiment, epoch, save_path):
+        matplotlib.use('agg')
         self.absorption_matrix = absorption_matrix[..., 0]
         self.delivered_dose = delivered_dose
         self.ground_truth = ground_truth[0, ..., 0]
@@ -84,7 +84,7 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.im3 = plt.imshow(gt_slice, cmap="gray", vmin=vmin, vmax=vmax, interpolation="none")
+        self.im3 = plt.imshow(gt_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
         plt.subplot(224)
@@ -92,7 +92,7 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.im4 = plt.imshow(dose_slice, cmap="gray", vmin=vmin, vmax=vmax, interpolation="none")
+        self.im4 = plt.imshow(dose_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
@@ -119,8 +119,8 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
 
 def get_absorption_matrices(ct, num_cp):
     batches = []
-    absorption_scalar = 1 / (32)
-    absorption = ct * absorption_scalar
+    absorption_scalar = 1 / (96)
+    absorption = np.ones_like(ct) * absorption_scalar
     for batch in range(ct.shape[0]):
         rotated_arrays = []
         for idx in range(num_cp):
@@ -128,7 +128,6 @@ def get_absorption_matrices(ct, num_cp):
             array = 1 - tf.cumsum(array, axis=0)
             array = rotate(array, - idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
             array = tf.where(tf.greater(array, 0), array, 0)
-            array = ct[batch, ...] * array
             rotated_arrays.append(tf.cast(array, dtype=np.float16))
         batches.append(tf.concat(rotated_arrays, axis=-1))
 
