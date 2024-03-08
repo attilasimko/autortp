@@ -15,7 +15,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 50
-epoch_length = 50
+epoch_length = 5
 batch_size = 6
 learning_rate = 0.00001
 
