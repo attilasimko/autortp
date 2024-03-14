@@ -84,8 +84,8 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        plt.colorbar()
         self.im3 = plt.imshow(gt_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
+        plt.colorbar()
 
 
         plt.subplot(224)
@@ -93,8 +93,8 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        plt.colorbar()
         self.im4 = plt.imshow(dose_slice, cmap="jet", interpolation="none")
+        plt.colorbar()
 
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
