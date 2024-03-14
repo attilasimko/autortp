@@ -8,13 +8,13 @@ def rtp_loss(ray_matrices, num_cp, num_mc, leaf_length):
         leafs, mus = vector_to_monaco_param(y_pred, leaf_length, num_cp, y_true.shape[0])
         dose_diffs = 0.0
         for batch_idx in range(y_true.shape[0]):
-            dose_values, _ = tf.unique(tf.reshape(y_true[batch_idx, ..., 0], [-1]))
-            for dose_value in dose_values:
-                dose_idxes = tf.where(tf.equal(y_true[batch_idx, ..., 0], dose_value))
-                dose_idxes = tf.random.shuffle(dose_idxes)
-                for mc_idx in range(tf.minimum(num_mc, tf.shape(dose_idxes)[0])):
-                    mc_point = dose_idxes[mc_idx]
-                    pred_dose = get_dose_value([matrix[batch_idx, ...] for matrix in absorption_matrices], ray_matrices, leafs[batch_idx, ...], mus[batch_idx, ...], mc_point)
-                    dose_diffs += tf.cast(tf.abs(tf.cast(dose_value, tf.float16) - pred_dose) / (num_mc * y_true.shape[0]), tf.float32)
+            mc_center = [tf.random.uniform([], 0, y_true.shape[1], dtype=tf.int32), tf.random.uniform([], 0, y_true.shape[2], dtype=tf.int32)]
+            for mc_z in range(y_true.shape[3]):
+                mc_point = [mc_center[0], mc_center[1], mc_z]
+                pred_dose = get_dose_value([matrix[batch_idx, ...] for matrix in absorption_matrices], ray_matrices, leafs[batch_idx, ...], mus[batch_idx, ...], mc_point)
+                dose_diffs += tf.cast(tf.abs(tf.cast(y_true[batch_idx, mc_point[0], mc_point[1], mc_point[2], 0], tf.float16) - pred_dose) / (y_true.shape[0] * y_true.shape[3]), tf.float32)
+                pred_dose = get_dose_value([matrix[batch_idx, ...] for matrix in absorption_matrices], ray_matrices, leafs[batch_idx, ...], mus[batch_idx, ...], mc_point)
+                dose_value = y_true[batch_idx, mc_point[0], mc_point[1], mc_point[2], 0]
+                dose_diffs += tf.cast(tf.abs(tf.cast(dose_value, tf.float16) - pred_dose) / (num_mc * y_true.shape[0]), tf.float32)
         return dose_diffs
     return loss_fn
