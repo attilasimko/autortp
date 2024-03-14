@@ -52,7 +52,7 @@ def monaco_plan(latent_space, num_cp):
     latent_space = Conv1D(2 * num_cp, 12, activation='sigmoid', padding='same', kernel_initializer="zeros")(latent_space)
     leaf_total = tf.split(latent_space, 2*num_cp, axis=2)
     for i in range(num_cp):
-        leafs.append(tf.concat([leaf_total[i * 2], leaf_total[i * 2 + 1]], 2, name=f'leaf_{i}'))
+        leafs.append(tf.concat([leaf_total[i * 2], leaf_total[(i * 2) + 1]], 2, name=f'leaf_{i}'))
     
     mus = []
     mu_total = Conv1D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_space)

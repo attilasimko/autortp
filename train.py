@@ -20,12 +20,11 @@ batch_size = 1
 learning_rate = 0.000001
 
 # Number of control points
-num_cp = 12         
+num_cp = 12
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
-ratio_mc = 0.01
-num_mc = int(ratio_mc * (64*64))
+grid_mc = 4
 # Generate ray matrices for each control point
 ray_matrices = get_monaco_projections(num_cp)
 
@@ -40,7 +39,7 @@ experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd"
 # loss(y, pred)
 
 model = build_model(batch_size, num_cp)
-model.compile(loss=rtp_loss(ray_matrices, num_cp, num_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
+model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
