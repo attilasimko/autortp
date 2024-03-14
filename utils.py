@@ -84,6 +84,7 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
+        plt.colorbar()
         self.im3 = plt.imshow(gt_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
@@ -92,12 +93,13 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.im4 = plt.imshow(dose_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
+        plt.colorbar()
+        self.im4 = plt.imshow(dose_slice, cmap="jet", interpolation="none")
 
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     x, y = generate_data(1, (32, 32, 32), 20)
-    num_step = 2
+    num_step = 4
     dose = np.zeros_like(y)[0, ..., 0]
 
     # pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
@@ -113,7 +115,7 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
                 mc_point = tf.constant([i, j, k], dtype=tf.int32)
                 dose[i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value([matrix[0, ...] for matrix in absorption_matrices], ray_matrices, leafs[0, ...], mus[0, ...], mc_point)
     
-    for i in range(num_cp):
+    for i in range(1):#num_cp):
         save_gif(absorption_matrices[i][0, ...], dose, y, ray_matrices[i][0, ...], leafs[..., i], mus[..., i], experiment, epoch, f"imgs/{i}.gif")
     
 
