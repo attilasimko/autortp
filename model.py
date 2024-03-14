@@ -49,18 +49,18 @@ def monaco_plan(latent_space, num_cp):
     mu_alpha = 0.0
 
     leafs = []
-    leaf_total = Conv1D(2 * num_cp, 12, activation='sigmoid', padding='same', kernel_initializer="he_normal")(latent_space)
-    leaf_total = tf.split(leaf_total, 2*num_cp, axis=2)
+    latent_space = Conv1D(2 * num_cp, 12, activation='sigmoid', padding='same', kernel_initializer="zeros")(latent_space)
+    leaf_total = tf.split(latent_space, 2*num_cp, axis=2)
     for i in range(num_cp):
         leafs.append(tf.concat([leaf_total[i * 2], leaf_total[i * 2 + 1]], 2, name=f'leaf_{i}'))
     
     mus = []
-    mu_total = Conv1D(24, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_space)
+    mu_total = Conv1D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_space)
     mu_total = Conv1D(4, 3, activation='relu', padding='same', kernel_initializer="he_normal")(mu_total)
     mu_total = Flatten()(mu_total)
     mu_total = Dense(4 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
     mu_total = Dense(2 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
-    mu_total = Dense(num_cp, activation='sigmoid', kernel_initializer="he_normal")(mu_total)
+    mu_total = Dense(num_cp, activation='sigmoid', kernel_initializer="zeros")(mu_total)
     mu_total = tf.split(mu_total, num_cp, axis=1)
     for i in range(num_cp):
         mus.append(Reshape((), name=f"mu_{i}")(mu_total[i]))
