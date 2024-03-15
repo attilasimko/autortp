@@ -141,7 +141,6 @@ def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
         absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2], 0]
         leaf_idx = mc_point[2]
         ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
-        ray_idx -= tf.cast(64 * leaf_idx, dtype=tf.float16)
         cond_leafs = tf.logical_and(tf.greater_equal(ray_idx, leafs[0, leaf_idx, cp_idx] * 32), tf.less_equal(ray_idx, 64 - leafs[1, leaf_idx, cp_idx] * 32))
         dep_value = mus[0, cp_idx] * absorption_value
         dose += tf.reduce_sum(tf.where(cond_leafs, dep_value, 0))
@@ -151,9 +150,8 @@ def get_monaco_projections(num_cp):
     shape = (64, 64)
     rotated_arrays = []
     x, y = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]))
-    indeces = y * shape[0] + x
+    indeces = x
     indeces = np.repeat(indeces[..., None], 64, -1)
-    indeces = np.swapaxes(indeces, 0, 2)
 
     for angle_idx in range(num_cp):
         array = np.expand_dims(rotate(indeces, - angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest'), 0)
