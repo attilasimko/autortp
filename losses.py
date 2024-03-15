@@ -12,7 +12,7 @@ def rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length):
                 for mc_y in range(tf.random.uniform([], 0, grid_mc, dtype=tf.int32), y_true.shape[2], grid_mc):
                     for mc_z in range(tf.random.uniform([], 0, grid_mc, dtype=tf.int32), y_true.shape[3], grid_mc):
                         mc_point = [mc_x, mc_y, mc_z]
-                        pred_dose = get_dose_value([matrix[batch_idx, ...] for matrix in absorption_matrices], ray_matrices, leafs[batch_idx, ...], mus[batch_idx, ...], mc_point)
+                        pred_dose = get_dose_value([matrix[batch_idx, ...] for matrix in absorption_matrices], ray_matrices, leafs[batch_idx, ...], mus, mc_point)
                         true_dose = y_true[batch_idx, mc_x, mc_y, mc_z, 0]
                         dose_diffs.append(tf.cast(tf.abs(tf.cast(true_dose, tf.float16) - pred_dose), tf.float32))
         return tf.reduce_mean(dose_diffs)
