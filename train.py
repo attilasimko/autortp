@@ -31,18 +31,16 @@ ray_matrices = get_monaco_projections(num_cp)
 # Comet_ml
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
-# Debug part
-# loss = rtp_loss(ray_matrices, num_cp, num_mc, leaf_length)
-# x, y = generate_data(batch_size)
-# y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
-# pred = np.random.rand(batch_size * leaf_length * 2 * num_cp + batch_size * num_cp, dtype=np.float16)
-# loss(y, pred)
-
 model = build_model(batch_size, num_cp)
 model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
+loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
+x, y = generate_data(batch_size, (32, 32, 32), 20)
+y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
+pred = model.predict_on_batch(x)
+loss_fn(y, pred)
 
 for epoch in range(n_epochs):
     training_loss = []
