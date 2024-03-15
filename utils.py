@@ -160,20 +160,6 @@ def get_monaco_projections(num_cp):
 
     return [tf.constant(x, dtype=tf.float16) for x in rotated_arrays]
 
-def get_dose_batch(control_matrices, leafs, mus, dose_shape, num_cp=6):
-    dose = tf.zeros(dose_shape, dtype=tf.float16)
-    for cp_idx in range(num_cp):
-        for j in range(64): # Number of leaves
-            leaf_min = tf.expand_dims(leafs[:, 0, j, cp_idx], axis=-1)  # Shape: (batch_size, 1)
-            leaf_max = tf.expand_dims(leafs[:, 1, j, cp_idx], axis=-1)  # Shape: (batch_size, 1)
-            for i in range(64): # Number of leaves
-                idx_value = j * 64 + i + 1
-                leaf_idx_pos = tf.cast(i / 64, dtype=tf.float16)
-                
-                condition = tf.logical_and(tf.logical_and(tf.less_equal(leaf_idx_pos, leaf_max), tf.greater_equal(leaf_idx_pos, leaf_min)), tf.equal(control_matrices[cp_idx], idx_value))
-                dose += tf.where(condition, mus[..., cp_idx], 0)
-    return dose
-
 def monaco_param_to_vector(leafs, mus):
     leafs = tf.stack(leafs, -1)
     mus = tf.stack(mus, -1)
