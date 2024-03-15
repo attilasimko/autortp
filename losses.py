@@ -7,7 +7,7 @@ def rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length):
         num_eval_points = y_true.shape[0] * (64 // grid_mc) ** 3
         absorption_matrices = tf.split(y_true, y_true.shape[-1], axis=-1)[1:]
         leafs, mus = vector_to_monaco_param(y_pred, leaf_length, num_cp, y_true.shape[0])
-        dose_diffs = 0.0
+        dose_diffs = []
         for batch_idx in range(y_true.shape[0]):
             for mc_x in range(tf.random.uniform([], 0, grid_mc, dtype=tf.int32), y_true.shape[1], grid_mc):
                 for mc_y in range(tf.random.uniform([], 0, grid_mc, dtype=tf.int32), y_true.shape[2], grid_mc):
@@ -15,8 +15,6 @@ def rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length):
                         mc_point = [mc_x, mc_y, mc_z]
                         pred_dose = get_dose_value([matrix[batch_idx, ...] for matrix in absorption_matrices], ray_matrices, leafs[batch_idx, ...], mus[batch_idx, ...], mc_point)
                         true_dose = y_true[batch_idx, mc_x, mc_y, mc_z, 0]
-                        print("True dose: ", true_dose)
-                        print("Pred dose: ", pred_dose)
-                        dose_diffs += tf.cast(tf.abs(tf.cast(true_dose, tf.float16) - pred_dose) / (num_eval_points), tf.float32)
-        return dose_diffs
+                        dose_diffs.append(tf.cast(tf.abs(tf.cast(true_dose, tf.float16) - pred_dose), tf.float32))
+        return tf.reduce_mean(dose_diffs)
     return loss_fn
