@@ -143,7 +143,7 @@ def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
         leaf_idx = mc_point[2]
         ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
         cond_leafs = tf.logical_and(tf.greater_equal(ray_idx, leafs[0, leaf_idx, cp_idx] * 32), tf.less_equal(ray_idx, 64 - leafs[1, leaf_idx, cp_idx] * 32))
-        dep_value = 1.0 # mus[0, cp_idx] * absorption_value
+        dep_value = tf.cast(1.0, dtype=tf.float16) # mus[0, cp_idx] * absorption_value
         dose += tf.reduce_sum(tf.where(cond_leafs, dep_value, 0))
     return dose
 
