@@ -15,7 +15,6 @@ def rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length):
                         mc_point = [mc_x, mc_y, mc_z]
                         pred_dose = tf.cast(get_dose_value([matrix[batch_idx, ...] for matrix in absorption_matrices], ray_matrices, leafs[batch_idx, ...], mus[batch_idx, ...], mc_point), tf.float32)
                         true_dose = tf.cast(y_true[batch_idx, mc_x, mc_y, mc_z, 0], tf.float32)
-                        print(f"True dose: {true_dose}, pred dose: {pred_dose}")
                         dose_diffs += tf.abs(true_dose - pred_dose) / num_eval_points
         return dose_diffs
     return loss_fn
