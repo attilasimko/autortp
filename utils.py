@@ -20,10 +20,10 @@ class save_gif():
         self.epoch = epoch
         self.save_path = save_path
         self.mlc = np.zeros((64, 64), dtype=np.bool)
-        print("Leafs: ", leafs[0, ...])
+        # print("Leafs: ", leafs[0, ...])
         for i in range(64):
             for j in range(64):
-                if i > leafs[0, 0, j] * 32 and i < 64 - leafs[0, 1, j] * 32:
+                if (i > leafs[0, 0, j] * 32) and (i < 64 - leafs[0, 1, j] * 32):
                     self.mlc[i, j] = True
 
         # print("Lower leafs: ", leafs[0, 0, :])
