@@ -30,7 +30,7 @@ class save_gif():
         # print("Upper leafs: ", leafs[0, 1, :])
         self.ray_matrix = np.zeros_like(ray_matrix)
         for i in range(ray_matrix.shape[2]):
-            self.ray_matrix[:, :, i] = np.isin(ray_matrix[:, :, i], range(int((i * 64) + (leafs[0, 0, i] * 32)), int((i * 64) + (64 - leafs[0, 1, i] * 32)))).astype(np.float16)
+            self.ray_matrix[:, :, i] = np.isin(ray_matrix[:, :, i], range(int(leafs[0, 0, i] * 32), int(64 - (leafs[0, 1, i] * 32)))).astype(np.float16)
         self.ray_matrix = np.where(self.ray_matrix > 0, self.mus[0, 0], 0)
 
         self.fig, axx = plt.subplots(2, 2)
