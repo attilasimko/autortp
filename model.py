@@ -62,7 +62,7 @@ def monaco_plan(latent_space, num_cp):
     mu_total = Dense(2 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
     mu_total = Dense(num_cp, activation='sigmoid', kernel_initializer="zeros", activity_regularizer=mu_reg(mu_alpha))(mu_total)
     mu_total = tf.split(mu_total, num_cp, axis=1)
-    for i in range(num_cp):
-        mus.append(Reshape((), name=f"mu_{i}")(mu_total[i]))
+    # for i in range(num_cp):
+    #     mus.append(Reshape((), name=f"mu_{i}")(mu_total[i]))
             
-    return monaco_param_to_vector(leafs, mus)
+    return monaco_param_to_vector(leafs) #, mus)

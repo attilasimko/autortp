@@ -4,7 +4,6 @@ tf.compat.v1.enable_eager_execution()
 
 def rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length):
     def loss_fn(y_true, y_pred):
-        num_eval_points = y_true.shape[0] * (64 // grid_mc) ** 3
         absorption_matrices = tf.split(y_true, y_true.shape[-1], axis=-1)[1:]
         leafs, mus = vector_to_monaco_param(y_pred, leaf_length, num_cp, y_true.shape[0])
         dose_diffs = []
