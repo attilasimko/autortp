@@ -171,7 +171,7 @@ def get_dose_batch(control_matrices, leafs, mus, dose_shape, num_cp=6):
                 leaf_idx_pos = tf.cast(i / 64, dtype=tf.float16)
                 
                 condition = tf.logical_and(tf.logical_and(tf.less_equal(leaf_idx_pos, leaf_max), tf.greater_equal(leaf_idx_pos, leaf_min)), tf.equal(control_matrices[cp_idx], idx_value))
-                dose += tf.where(condition, 0.0 * mus[..., cp_idx] + 1, 0)
+                dose += tf.where(condition, mus[..., cp_idx], 0)
     return dose
 
 def monaco_param_to_vector(leafs, mus):
