@@ -25,7 +25,7 @@ class save_gif():
         # print("Upper leafs: ", leafs[0, 1, :])
         self.ray_matrix = self.mus[0, 0] * np.ones_like(ray_matrix)
         for i in range(ray_matrix.shape[2]):
-            self.ray_matrix[:, :, i] = tf.multiply(self.ray_matrix[:, :, i], self.leafs[0, i, None :, None]).astype(np.float16)
+            self.ray_matrix[:, :, i] = tf.multiply(self.ray_matrix[:, :, i], self.leafs[0, i, None :, None])
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
