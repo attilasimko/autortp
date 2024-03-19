@@ -6,6 +6,7 @@ from matplotlib import animation
 import matplotlib
 import tensorflow as tf
 tf.keras.mixed_precision.set_global_policy('mixed_float16')
+tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
@@ -23,7 +24,9 @@ class save_gif():
 
         # print("Lower leafs: ", leafs[0, 0, :])
         # print("Upper leafs: ", leafs[0, 1, :])
-        self.ray_matrix = tf.where(tf.greater(self.leafs[0, :, None, :], 0.5), self.mus[0, 0], 0.0)
+        self.ray_matrix = np.ones_like(ray_matrix)
+        for i in range(ray_matrix.shape[2]):
+            self.ray_matrix[:, :, i] = tf.gather(self.leafs[0, i, :], tf.cast(ray_matrix[..., i], dtype=tf.int32))
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
@@ -132,9 +135,8 @@ def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
     dose = 0.0
     for cp_idx in range(len(ray_matrices)):
         absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2], 0]
-        leaf_idx = mc_point[2]
-        ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
-        leaf_cond = leafs[mc_point[2], mc_point[1], cp_idx]
+        ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.int32)
+        leaf_cond = leafs[mc_point[2], ray_idx, cp_idx]
         dep_value = tf.cast(absorption_value, dtype=tf.float16) * mus[0, cp_idx] * leaf_cond
         dose += dep_value
     return dose
