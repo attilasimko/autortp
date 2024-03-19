@@ -26,7 +26,7 @@ class save_gif():
         # print("Upper leafs: ", leafs[0, 1, :])
         self.ray_matrix = np.ones_like(ray_matrix)
         for i in range(ray_matrix.shape[2]):
-            self.ray_matrix[:, :, i] = tf.gather(self.leafs[0, i, :], tf.cast(ray_matrix[..., i], dtype=tf.int32))
+            self.ray_matrix[:, :, i] = tf.gather(self.mlc[i, :], tf.cast(ray_matrix[..., i], dtype=tf.int32))
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
