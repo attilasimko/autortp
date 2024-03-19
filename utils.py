@@ -20,7 +20,7 @@ class save_gif():
         self.experiment = experiment
         self.epoch = epoch
         self.save_path = save_path
-        self.mlc = self.leafs[0, ...]
+        self.mlc = tf.where(tf.greater(self.leafs[0, ...], 0.5), self.mus[0], 0.0)
 
         # print("Lower leafs: ", leafs[0, 0, :])
         # print("Upper leafs: ", leafs[0, 1, :])
