@@ -53,7 +53,7 @@ def monaco_plan(latent_space, num_cp):
         leaf_lower = tf.math.cumprod(leaf_lower, axis=2)
         leaf_upper = tf.math.cumprod(leaf_upper, axis=2)
         leaf_upper = tf.reverse(leaf_upper, [2])
-        mlc = tf.concat([leaf_lower, leaf_upper], 2, name=f'mlc_{i}')
+        mlc = tf.concat([leaf_upper, leaf_lower], 2, name=f'mlc_{i}')
         leafs.append(mlc)
     
     mus = []
