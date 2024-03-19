@@ -19,19 +19,13 @@ class save_gif():
         self.experiment = experiment
         self.epoch = epoch
         self.save_path = save_path
-        self.mlc = np.zeros((64, 64), dtype=np.bool)
-        # print("Leafs: ", leafs[0, ...])
-        for i in range(64):
-            for j in range(64):
-                if (i > leafs[0, 0, j] * 32) and (i < 64 - leafs[0, 1, j] * 32):
-                    self.mlc[i, j] = True
+        self.mlc = self.leafs[0, ...]
 
         # print("Lower leafs: ", leafs[0, 0, :])
         # print("Upper leafs: ", leafs[0, 1, :])
-        self.ray_matrix = np.zeros_like(ray_matrix)
+        self.ray_matrix = self.mus[0, 0] * np.ones_like(ray_matrix)
         for i in range(ray_matrix.shape[2]):
-            self.ray_matrix[:, :, i] = np.isin(ray_matrix[:, :, i], range(int(leafs[0, 0, i] * 32), int(64 - (leafs[0, 1, i] * 32)))).astype(np.float16)
-        self.ray_matrix = np.where(self.ray_matrix > 0, self.mus[0, 0], 0)
+            self.ray_matrix[:, :, i] = tf.multiply(self.ray_matrix[:, :, i], self.leafs[0, i, None :, None]).astype(np.float16)
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
@@ -142,9 +136,9 @@ def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
         absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2], 0]
         leaf_idx = mc_point[2]
         ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.float16)
-        cond_leafs = tf.logical_and(tf.greater_equal(ray_idx, leafs[0, leaf_idx, cp_idx] * 32), tf.less_equal(ray_idx, 64 - leafs[1, leaf_idx, cp_idx] * 32))
-        dep_value = tf.cast(1.0, dtype=tf.float16) # mus[0, cp_idx] * absorption_value
-        dose += tf.reduce_sum(tf.where(cond_leafs, dep_value, 0))
+        leaf_cond = leafs[mc_point[2], mc_point[1], cp_idx]
+        dep_value = tf.cast(absorption_value, dtype=tf.float16) * mus[0, cp_idx] * leaf_cond
+        dose += dep_value
     return dose
 
 def get_monaco_projections(num_cp):
@@ -167,6 +161,6 @@ def monaco_param_to_vector(leafs, mus):
     return tf.concat([tf.reshape(leafs, [-1]), tf.reshape(mus, [-1])], -1)
 
 def vector_to_monaco_param(vec, leaf_length=64, num_cp=6, batch_size=1):
-    leafs = tf.reshape(vec[:batch_size * leaf_length * 2 * num_cp], [batch_size, 2, leaf_length, num_cp])
-    mus = tf.reshape(vec[batch_size * leaf_length * 2 * num_cp:], [batch_size, 1, num_cp])
+    leafs = tf.reshape(vec[:batch_size * leaf_length * 64 * num_cp], [batch_size, 64, leaf_length, num_cp])
+    mus = tf.reshape(vec[batch_size * leaf_length * 64 * num_cp:], [batch_size, 1, num_cp])
     return leafs, mus

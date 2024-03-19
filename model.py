@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Flatten, Dense, Dropout, Reshape, Activation, Conv1D
+from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Flatten, Dense, Dropout, Reshape, Activation, Conv1D, Conv2D
 import numpy as np
 from utils import get_monaco_projections, monaco_param_to_vector
 
@@ -28,14 +28,10 @@ def build_model(batch_size=1, num_cp=6):
     x = Conv3D(128, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(2 * 128, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = MaxPooling3D((4, 4, 4))(x)
-    x = Reshape((64, -1))(x)
-    x = Conv1D(8, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv1D(16, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv1D(32, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv1D(2 * num_cp, 12, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv1D(2 * num_cp, 12, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv1D(2 * num_cp, 12, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = Reshape((64, 32, -1))(x)
+    x = Conv2D(8, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = Conv2D(2 * num_cp, 3, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
     latent_space = x
 
     concat = monaco_plan(latent_space, num_cp)
@@ -49,14 +45,20 @@ def monaco_plan(latent_space, num_cp):
     mu_alpha = 0.001
 
     leafs = []
-    latent_space = Conv1D(2 * num_cp, 12, activation='sigmoid', padding='same', kernel_initializer="zeros")(latent_space) # , activity_regularizer=leaf_reg(leaf_alpha)
-    leaf_total = tf.split(latent_space, 2*num_cp, axis=2)
+    leaf_total = Conv2D(2 * num_cp, 3, activation='sigmoid', padding='same', kernel_initializer="he_normal")(latent_space) # , activity_regularizer=leaf_reg(leaf_alpha)
+    leaf_total = tf.split(leaf_total, num_cp, axis=3)
     for i in range(num_cp):
-        leafs.append(tf.concat([leaf_total[i * 2], leaf_total[(i * 2) + 1]], 2, name=f'leaf_{i}'))
+        leaf_lower = leaf_total[i][..., 0:1]
+        leaf_upper = leaf_total[i][..., 1:2]
+        leaf_lower = tf.math.cumprod(leaf_lower, axis=2)
+        leaf_upper = tf.math.cumprod(leaf_upper, axis=2)
+        leaf_upper = tf.reverse(leaf_upper, [2])
+        mlc = tf.concat([leaf_lower, leaf_upper], 2, name=f'mlc_{i}')
+        leafs.append(mlc)
     
     mus = []
-    mu_total = Conv1D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_space)
-    mu_total = Conv1D(4, 3, activation='relu', padding='same', kernel_initializer="he_normal")(mu_total)
+    mu_total = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_space)
+    mu_total = Conv2D(4, 3, activation='relu', padding='same', kernel_initializer="he_normal")(mu_total)
     mu_total = Flatten()(mu_total)
     mu_total = Dense(4 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
     mu_total = Dense(2 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
