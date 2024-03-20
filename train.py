@@ -20,7 +20,7 @@ batch_size = 1
 learning_rate = 0.000001
 
 # Number of control points
-num_cp = 12
+num_cp = 1
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
