@@ -89,7 +89,7 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.im4 = plt.imshow(dose_slice, cmap="jet", interpolation="none")
+        self.im4 = plt.imshow(dose_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
         plt.colorbar()
 
 
