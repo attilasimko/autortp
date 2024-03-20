@@ -14,7 +14,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
-n_epochs = 5
+n_epochs = 50
 epoch_length = 20
 batch_size = 1
 learning_rate = 0.0001
