@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Flatten, Dense, Dropout, Reshape, Activation, Conv1D, Conv2D
+from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
 import numpy as np
 from utils import get_monaco_projections, monaco_param_to_vector
 
@@ -28,10 +28,17 @@ def build_model(batch_size=1, num_cp=6):
     x = Conv3D(128, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(2 * 128, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Reshape((64, 32, -1))(x)
-    x = Conv2D(8, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv2D(16, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv2D(2 * num_cp, 3, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
+    x = MaxPooling3D((2, 2, 4))(x)
+    x = x[:, :, :, 0, :]
+    x = Conv2D(256, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = UpSampling2D((4, 4))(x)
+    x = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = UpSampling2D((4, 2))(x)
+    x = Conv2D(4 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = Conv2D(2 * num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
     latent_space = x
 
     concat = monaco_plan(latent_space, num_cp)
