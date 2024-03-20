@@ -50,8 +50,8 @@ def monaco_plan(latent_space, num_cp):
     for i in range(num_cp):
         leaf_lower = leaf_total[i][..., 0:1]
         leaf_upper = leaf_total[i][..., 1:2]
-        leaf_lower = tf.math.cumprod(leaf_lower, axis=2)
-        leaf_upper = tf.math.cumprod(leaf_upper, axis=2)
+        # leaf_lower = tf.math.cumprod(leaf_lower, axis=2)
+        # leaf_upper = tf.math.cumprod(leaf_upper, axis=2)
         leaf_upper = tf.reverse(leaf_upper, [2])
         mlc = tf.concat([leaf_upper, leaf_lower], 2, name=f'mlc_{i}')
         leafs.append(mlc)
