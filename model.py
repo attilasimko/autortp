@@ -52,7 +52,7 @@ def monaco_plan(latent_space, num_cp):
 
     leafs = []
     leaf_total = Conv2D(num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(latent_space) # , activity_regularizer=leaf_reg(leaf_alpha)
-    leaf_lower, leaf_upper = tf.split(leaf_total, 1, axis=2)
+    leaf_lower, leaf_upper = tf.split(leaf_total, 2, axis=1)
     leaf_lower = tf.math.cumprod(leaf_lower, axis=1, exclusive=True)
     leaf_upper = tf.math.cumprod(leaf_upper, axis=1, exclusive=True, reverse=True)
     leaf_total = tf.concat([leaf_upper, leaf_lower], 1)
