@@ -74,4 +74,4 @@ def monaco_plan(latent_space, num_cp):
     for i in range(num_cp):
         mus.append(Reshape((), name=f"mu_{i}")(mu_total[i]))
             
-    return monaco_param_to_vector(leafs, mus)
+    return monaco_param_to_vector(leafs) # , mus)

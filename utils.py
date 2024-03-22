@@ -10,23 +10,24 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, absorption_matrix, delivered_dose, ground_truth, ray_matrix, leafs, mus, experiment, epoch, save_path):
+    def __init__(self, absorption_matrix, delivered_dose, ground_truth, ray_strengths, leafs, experiment, epoch, save_path):
         matplotlib.use('agg')
         self.absorption_matrix = absorption_matrix[..., 0]
         self.delivered_dose = delivered_dose
         self.ground_truth = ground_truth[0, ..., 0]
         self.leafs = leafs
-        self.mus = mus
+        # self.mus = mus
         self.experiment = experiment
         self.epoch = epoch
         self.save_path = save_path
-        self.mlc = tf.where(tf.greater(self.leafs[0, ...], 0.5), self.mus[0], 0.0)
+        self.mlc = tf.where(tf.greater(self.leafs[0, ...], 0.5), 1.0, 0.0)
+        self.ray_matrix = ray_strengths
 
         # print("Lower leafs: ", leafs[0, 0, :])
         # print("Upper leafs: ", leafs[0, 1, :])
-        self.ray_matrix = np.ones_like(ray_matrix)
-        for i in range(ray_matrix.shape[2]):
-            self.ray_matrix[:, :, i] = tf.gather(self.mlc[i, :], tf.cast(ray_matrix[..., i], dtype=tf.int32))
+        # self.ray_matrix = np.ones_like(ray_matrix)
+        # for i in range(ray_matrix.shape[2]):
+        #     self.ray_matrix[:, :, i] = tf.gather(self.mlc[i, :], tf.cast(ray_matrix[..., i], dtype=tf.int32))
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
@@ -92,27 +93,32 @@ class save_gif():
         self.im4 = plt.imshow(dose_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
         plt.colorbar()
 
+def get_rays(ray_matrices, leafs):
+    ray_strengths = []
+    for batch_idx in range(leafs.shape[0]):
+        for cp_idx in range(len(ray_matrices)):
+            ray_slices = []
+            for slice_idx in range(leafs.shape[2]):
+                current_leafs = leafs[batch_idx, ..., slice_idx, cp_idx]
+                ray_matrix = tf.cast(ray_matrices[cp_idx][batch_idx, ...], dtype=tf.int32)
+                ray_slices.append(tf.gather(current_leafs, ray_matrix))
+            ray_strengths.append(tf.stack(ray_slices, -1))
+    return ray_strengths
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     x, y = generate_data(1, (32, 32, 32), 20)
     num_step = 4
     dose = np.zeros_like(y)[0, ..., 0]
 
-    # pred = np.array(np.random.rand(leaf_length * 2 * num_cp + num_cp), dtype=np.float16)
     pred = model.predict_on_batch(x)
 
-    # pred = np.zeros((774))
     absorption_matrices = np.split(get_absorption_matrices(x[..., 0:1], num_cp), num_cp, -1)
-    leafs, mus = vector_to_monaco_param(pred, leaf_length, num_cp)
+    leafs = vector_to_monaco_param(pred, leaf_length, num_cp)
+    ray_strengths = get_rays(ray_matrices, leafs)
+    dose = tf.reduce_sum(ray_strengths, axis=0)
     
-    for i in range(0, 64, num_step):
-        for j in range(0, 64, num_step):
-            for k in range(0, 64, num_step):
-                mc_point = tf.constant([i, j, k], dtype=tf.int32)
-                dose[i:i+num_step, j:j+num_step, k:k+num_step] = get_dose_value([matrix[0, ...] for matrix in absorption_matrices], ray_matrices, leafs[0, ...], mus[0, ...], mc_point)
-    
-    for i in range(1):#num_cp):
-        save_gif(absorption_matrices[i][0, ...], dose, y, ray_matrices[i][0, ...], leafs[..., i], mus[..., i], experiment, epoch, f"imgs/{i}.gif")
+    for i in range(num_cp):
+        save_gif(absorption_matrices[i][0, ...], dose, y, ray_strengths[i], leafs[..., i], experiment, epoch, f"imgs/{i}.gif")
     
 
 def get_absorption_matrices(ct, num_cp):
@@ -146,7 +152,6 @@ def get_monaco_projections(num_cp):
     rotated_arrays = []
     x, y = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]))
     indeces = x
-    indeces = np.repeat(indeces[..., None], 64, -1)
 
     for angle_idx in range(num_cp):
         array = np.expand_dims(rotate(indeces, - angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest'), 0)
@@ -154,13 +159,13 @@ def get_monaco_projections(num_cp):
 
     return [tf.constant(x, dtype=tf.float16) for x in rotated_arrays]
 
-def monaco_param_to_vector(leafs, mus):
+def monaco_param_to_vector(leafs): #, mus):
     leafs = tf.stack(leafs, -1)
-    mus = tf.stack(mus, -1)
+    # mus = tf.stack(mus, -1)
 
-    return tf.concat([tf.reshape(leafs, [-1]), tf.reshape(mus, [-1])], -1)
+    return tf.reshape(leafs, [-1]) # tf.concat([tf.reshape(leafs, [-1]), tf.reshape(mus, [-1])], -1)
 
 def vector_to_monaco_param(vec, leaf_length=64, num_cp=6, batch_size=1):
     leafs = tf.reshape(vec[:batch_size * leaf_length * 64 * num_cp], [batch_size, 64, leaf_length, num_cp])
-    mus = tf.reshape(vec[batch_size * leaf_length * 64 * num_cp:], [batch_size, 1, num_cp])
-    return leafs, mus
+    # mus = tf.reshape(vec[batch_size * leaf_length * 64 * num_cp:], [batch_size, 1, num_cp])
+    return leafs # , mus

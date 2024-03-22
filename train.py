@@ -20,7 +20,7 @@ batch_size = 1
 learning_rate = 0.0001
 
 # Number of control points
-num_cp = 1
+num_cp = 3
 # Length of each leaf
 leaf_length = 64
 # Number of Monte Carlo points
@@ -36,11 +36,11 @@ model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimiz
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
-# loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
-# x, y = generate_data(batch_size, (32, 32, 32), 20)
-# y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
-# pred = model.predict_on_batch(x)
-# loss_fn(y, pred)
+loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
+x, y = generate_data(batch_size, (32, 32, 32), 20)
+y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
+pred = model.predict_on_batch(x)
+loss_val = loss_fn(y, pred)
 
 for epoch in range(n_epochs):
     training_loss = []
