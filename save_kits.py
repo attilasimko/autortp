@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import SimpleITK as sitk
 from rt_utils import RTStructBuilder
 import sys
+from scipy.ndimage import zoom
 sys.path.insert(1, os.path.abspath('.'))
 import utils
 
@@ -116,11 +117,20 @@ for patient in patients:
 		
         g = Graph(kidney)
         labels, count = g.countIslands()
+		
+        Kidney_L = labels == 1
+		
+        Kidney_R = labels == 2
+		
 
-        np.savez_compressed(base_path + "kits19_" + patient,
+        ct_stack = zoom(ct_stack, (64 / ct_stack.shape[0], 64 / ct_stack.shape[1], 64 / ct_stack.shape[2]))
+        Kidney_L = zoom(Kidney_L, (64 / Kidney_L.shape[0], 64 / Kidney_L.shape[1], 64 / Kidney_L.shape[2])) > 0
+        Kidney_R = zoom(Kidney_R, (64 / Kidney_R.shape[0], 64 / Kidney_R.shape[1], 64 / Kidney_R.shape[2])) > 0
+
+        np.savez_compressed("data/kits19_" + patient,
                             CT = np.array(np.interp(ct_stack, (-1000, 1000), (0, 255)), dtype=np.int16),
-                            Kidney_L = np.array(labels == 1, dtype=bool),
-                            Kidney_R = np.array(labels == 2, dtype=bool)
+                            Kidney_L = np.array(Kidney_L, dtype=bool),
+                            Kidney_R = np.array(Kidney_R, dtype=bool)
         )
     except Exception as e:
         print("Error in patient: ", patient + " - " + str(e))
