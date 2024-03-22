@@ -10,11 +10,12 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, absorption_matrix, delivered_dose, ground_truth, ray_strengths, leafs, experiment, epoch, save_path):
+    def __init__(self, absorption_matrix, ct, delivered_dose, ground_truth, ray_strengths, leafs, experiment, epoch, save_path):
         matplotlib.use('agg')
         self.absorption_matrix = absorption_matrix[..., 0]
         self.delivered_dose = delivered_dose
         self.ground_truth = ground_truth[0, ..., 0]
+        self.ct = ct
         self.leafs = leafs
         # self.mus = mus
         self.experiment = experiment
@@ -45,11 +46,14 @@ class save_gif():
         dose_slice = self.delivered_dose[:, :, i]
         gt_slice = self.ground_truth[:, :, i]
         ray_slice = self.ray_matrix[:, :, i]
+        ct_slice = self.ct[:, :, i]
 
         self.im2.set_array(ray_slice)
         self.im3.set_array(gt_slice)
         self.im4.set_array(dose_slice)
-        return [self.im2, self.im3, self.im4]
+        self.im3ct.set_array(ct_slice)
+        self.im4ct.set_array(ct_slice)
+        return [self.im2, self.im3, self.im4, self.im3ct, self.im4ct]
 
     def init(self):
         mono_font = {'fontname':'monospace'}
@@ -59,6 +63,7 @@ class save_gif():
         dose_slice = self.delivered_dose[:, :, 0]
         gt_slice = self.ground_truth[:, :, 0]
         ray_slice = self.ray_matrix[:, :, 0]
+        ct_slice = self.ct[:, :, 0]
         
         plt.subplot(221)
         plt.tick_params(left=False,
@@ -81,8 +86,8 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.im3 = plt.imshow(gt_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
-        plt.colorbar()
+        self.im3ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
+        self.im3 = plt.imshow(gt_slice, alpha=.2, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
         plt.subplot(224)
@@ -90,8 +95,8 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.im4 = plt.imshow(dose_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
-        plt.colorbar()
+        self.im4ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
+        self.im4 = plt.imshow(dose_slice, alpha=.2, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 def get_rays(ray_matrices, absorption_matrices, leafs):
     ray_strengths = []
@@ -121,7 +126,7 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     dose = tf.reduce_sum(ray_strengths, axis=0)
 
     for i in range(num_cp):
-        save_gif(absorption_matrices[i][0, ...], dose, y, ray_strengths[i], leafs[..., i], experiment, epoch, f"imgs/{i}.gif")
+        save_gif(absorption_matrices[i][0, ...], x[0, :, :, :, 0], dose, y, ray_strengths[i], leafs[..., i], experiment, epoch, f"imgs/{i}.gif")
     
 
 def get_absorption_matrices(ct, num_cp):

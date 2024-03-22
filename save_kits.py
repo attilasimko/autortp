@@ -118,19 +118,18 @@ for patient in patients:
         g = Graph(kidney)
         labels, count = g.countIslands()
 		
-        Kidney_L = labels == 1
+        Kidney = np.array(labels == 1, dtype=float)
+        # mass = np.array((Kidney * np.mgrid[0:Kidney.shape[0], 0:Kidney.shape[1], 0:Kidney.shape[2]]).sum(1).sum(1).sum(1)/Kidney.sum(), dtype=np.int16)
 		
-        Kidney_R = labels == 2
-		
+        # ct_stack = ct_stack[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
+        # Kidney = a[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
 
         ct_stack = zoom(ct_stack, (64 / ct_stack.shape[0], 64 / ct_stack.shape[1], 64 / ct_stack.shape[2]))
-        Kidney_L = zoom(Kidney_L, (64 / Kidney_L.shape[0], 64 / Kidney_L.shape[1], 64 / Kidney_L.shape[2])) > 0
-        Kidney_R = zoom(Kidney_R, (64 / Kidney_R.shape[0], 64 / Kidney_R.shape[1], 64 / Kidney_R.shape[2])) > 0
-
+        Kidney = zoom(Kidney, (64 / Kidney.shape[0], 64 / Kidney.shape[1], 64 / Kidney.shape[2])) > 0.5
+        
         np.savez_compressed("data/kits19_" + patient,
                             CT = np.array(np.interp(ct_stack, (-1000, 1000), (0, 255)), dtype=np.int16),
-                            Kidney_L = np.array(Kidney_L, dtype=bool),
-                            Kidney_R = np.array(Kidney_R, dtype=bool)
+                            Kidney = np.array(Kidney, dtype=bool)
         )
     except Exception as e:
         print("Error in patient: ", patient + " - " + str(e))
