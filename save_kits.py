@@ -106,7 +106,7 @@ def get_data(path):
 roi_names = []
 patients = os.listdir(os.path.join(data_path))
 
-for patient in patients:
+for patient in patients[:10]:
     try:
         ct_stack = get_data(data_path + patient + "/imaging.nii.gz")
         # ct_stack = np.interp(ct_stack, (-1, 1), (0, 255))
@@ -125,7 +125,7 @@ for patient in patients:
         # Kidney = a[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
 
         ct_stack = zoom(ct_stack, (64 / ct_stack.shape[0], 64 / ct_stack.shape[1], 64 / ct_stack.shape[2]))
-        Kidney = zoom(Kidney, (64 / Kidney.shape[0], 64 / Kidney.shape[1], 64 / Kidney.shape[2])) > 0.5
+        Kidney = zoom(Kidney, (64 / Kidney.shape[0], 64 / Kidney.shape[1], 64 / Kidney.shape[2])) > 0.2
         
         np.savez_compressed("data/kits19_" + patient,
                             CT = np.array(np.interp(ct_stack, (-1000, 1000), (0, 255)), dtype=np.int16),
