@@ -23,7 +23,7 @@ def generate_data(batch_size=1, idx=None):
             ct = np.interp(ct, (ct.min(), ct.max()), (-1.0, 1.0))
             mask = file['Kidney_L']
             mask = zoom(mask, (64 / mask.shape[0], 64 / mask.shape[1], 64 / mask.shape[2]))
-            mask = np.array(mask > 0.5, dtype=float)
+            mask = np.array(mask > 0, dtype=float)
             
         data.append(np.expand_dims(np.stack([ct, mask], axis=-1), axis=0))
         dose.append(np.expand_dims(np.expand_dims(dose_scale*mask, axis=0), axis=-1))

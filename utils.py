@@ -135,8 +135,11 @@ def get_absorption_matrices(ct, num_cp):
             array = 1 - tf.cumsum(array, axis=0)
             array = rotate(array, - idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
             array = tf.where(tf.greater(array, 0), array, 0)
+            array = tf.where(tf.greater(ct, -0.8), array, 0)
+            array /= tf.reduce_max(array)
             rotated_arrays.append(array)
-        batches.append(tf.stop_gradient(tf.constant(tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32))))
+        const_array = tf.stop_gradient(tf.constant(tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32)))
+        batches.append(const_array)
 
     return tf.stack(batches, 0)
 
