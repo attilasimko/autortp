@@ -32,7 +32,7 @@ ray_matrices = get_monaco_projections(num_cp)
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 model = build_model(batch_size, num_cp)
-model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimizer=RMSprop(learning_rate=learning_rate))
+model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
