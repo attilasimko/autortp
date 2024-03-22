@@ -160,10 +160,9 @@ def get_monaco_projections(num_cp):
     return [tf.constant(x) for x in rotated_arrays]
 
 def monaco_param_to_vector(leafs): #, mus):
-    leafs = tf.stack(leafs, -1)
     # mus = tf.stack(mus, -1)
 
-    return tf.reshape(leafs, [-1]) # tf.concat([tf.reshape(leafs, [-1]), tf.reshape(mus, [-1])], -1)
+    return tf.reshape(leafs, [leafs.shape[0], -1]) # tf.concat([tf.reshape(leafs, [-1]), tf.reshape(mus, [-1])], -1)
 
 def vector_to_monaco_param(vec, leaf_length=64, num_cp=6, batch_size=1):
     leafs = tf.reshape(vec[:batch_size * leaf_length * 64 * num_cp], [batch_size, 64, leaf_length, num_cp])

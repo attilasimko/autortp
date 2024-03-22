@@ -38,10 +38,10 @@ def build_model(batch_size=1, num_cp=6):
     x = UpSampling2D((4, 4))(x)
     x = Conv2D(4 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv2D(num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
-    # latent_space = x
+    x = Conv2D(num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    latent_space = x
 
-    # concat = monaco_plan(latent_space, num_cp)
+    concat = monaco_plan(latent_space, num_cp)
     x = Flatten()(x)
     return Model(inp, x)
     
@@ -52,16 +52,19 @@ def monaco_plan(latent_space, num_cp):
     mu_alpha = 0.001
 
     leafs = []
-    leaf_total = Conv2D(2 * num_cp, 3, activation='sigmoid', padding='same', kernel_initializer="he_normal")(latent_space) # , activity_regularizer=leaf_reg(leaf_alpha)
-    leaf_total = tf.split(leaf_total, num_cp, axis=3)
-    for i in range(num_cp):
-        leaf_lower = leaf_total[i][..., 0:1]
-        leaf_upper = leaf_total[i][..., 1:2]
-        # leaf_lower = tf.math.cumprod(leaf_lower, axis=2)
-        # leaf_upper = tf.math.cumprod(leaf_upper, axis=2)
-        leaf_upper = tf.reverse(leaf_upper, [2])
-        mlc = tf.concat([leaf_upper, leaf_lower], 2, name=f'mlc_{i}')
-        leafs.append(mlc)
+    leaf_total = Conv2D(num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(latent_space) # , activity_regularizer=leaf_reg(leaf_alpha)
+    leaf_lower, leaf_upper = tf.split(leaf_total, 2, axis=2)
+    leaf_total = tf.concat([leaf_upper, leaf_lower], 2)
+    leafs = Flatten()(leaf_total)
+    # leaf_total = tf.split(leaf_total, num_cp, axis=3)
+    # for i in range(num_cp):
+    #     leaf_lower = leaf_total[i][..., 0:1]
+    #     leaf_upper = leaf_total[i][..., 1:2]
+    #     # leaf_lower = tf.math.cumprod(leaf_lower, axis=2)
+    #     # leaf_upper = tf.math.cumprod(leaf_upper, axis=2)
+    #     leaf_upper = tf.reverse(leaf_upper, [2])
+    #     mlc = tf.concat([leaf_upper, leaf_lower], 2, name=f'mlc_{i}')
+    #     leafs.append(mlc)
     
     mus = []
     mu_total = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_space)
