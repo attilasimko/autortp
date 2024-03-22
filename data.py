@@ -19,7 +19,16 @@ def generate_data(batch_size=1, idx=None):
         with np.load(data_path + data_list[idx]) as file:
             ct = np.array(file['CT'], dtype=float)
             ct = np.interp(ct, (ct.min(), ct.max()), (-1.0, 1.0))
-            mask = np.array(file['Kidney'], dtype=float)
+            # mask = np.array(file['Kidney'], dtype=float)
+
+
+        sigma = np.random.randint(5, 15)
+        if center is None:
+            center = [32, 32, np.random.randint(12, 52)]
+        d2 = (x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2
+        gaussian = np.exp(-d2 / (2 * sigma**2))
+        gaussian /= np.max(gaussian)
+        mask = np.array(gaussian > 0.5, dtype=float)
             
         data.append(np.expand_dims(np.stack([ct, mask], axis=-1), axis=0))
         dose.append(np.expand_dims(np.expand_dims(dose_scale*mask, axis=0), axis=-1))
