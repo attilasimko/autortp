@@ -5,7 +5,7 @@ from data import generate_data
 from matplotlib import animation
 import matplotlib
 import tensorflow as tf
-tf.keras.mixed_precision.set_global_policy('mixed_float16')
+# tf.keras.mixed_precision.set_global_policy('mixed_float16')
 tf.compat.v1.enable_eager_execution()
 
  
@@ -116,7 +116,7 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     leafs = vector_to_monaco_param(pred, leaf_length, num_cp)
     ray_strengths = get_rays(ray_matrices, leafs)
     dose = tf.reduce_sum(ray_strengths, axis=0)
-    
+
     for i in range(num_cp):
         save_gif(absorption_matrices[i][0, ...], dose, y, ray_strengths[i], leafs[..., i], experiment, epoch, f"imgs/{i}.gif")
     
@@ -132,7 +132,7 @@ def get_absorption_matrices(ct, num_cp):
             array = 1 - tf.cumsum(array, axis=0)
             array = rotate(array, - idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest')
             array = tf.where(tf.greater(array, 0), array, 0)
-            rotated_arrays.append(tf.cast(array, dtype=np.float16))
+            rotated_arrays.append(array)
         batches.append(tf.concat(rotated_arrays, axis=-1))
 
     return tf.stack(batches, 0)
@@ -143,7 +143,7 @@ def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
         absorption_value = absorption_matrices[cp_idx][mc_point[0], mc_point[1], mc_point[2], 0]
         ray_idx = tf.cast(ray_matrices[cp_idx][0, mc_point[0], mc_point[1], mc_point[2]], dtype=tf.int32)
         leaf_cond = leafs[mc_point[2], ray_idx, cp_idx]
-        dep_value = tf.cast(absorption_value, dtype=tf.float16) * mus[0, cp_idx] * leaf_cond
+        dep_value = absorption_value * mus[0, cp_idx] * leaf_cond
         dose += dep_value
     return dose
 
@@ -157,7 +157,7 @@ def get_monaco_projections(num_cp):
         array = np.expand_dims(rotate(indeces, - angle_idx * 360 / num_cp, (0, 1), reshape=False, order=0, mode='nearest'), 0)
         rotated_arrays.append(array)
 
-    return [tf.constant(x, dtype=tf.float16) for x in rotated_arrays]
+    return [tf.constant(x) for x in rotated_arrays]
 
 def monaco_param_to_vector(leafs): #, mus):
     leafs = tf.stack(leafs, -1)

@@ -21,7 +21,7 @@ class mu_reg(keras.regularizers.Regularizer):
         return self.alpha * tf.math.reduce_mean(tf.math.abs(weights))
 
 def build_model(batch_size=1, num_cp=6):
-    inp = Input(shape=(64, 64, 64, 2), dtype=tf.float16, batch_size=batch_size)
+    inp = Input(shape=(64, 64, 64, 2), batch_size=batch_size)
     x = Conv3D(4, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(inp)
     x = Conv3D(32, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((4, 4, 4))(x)
@@ -35,15 +35,15 @@ def build_model(batch_size=1, num_cp=6):
     x = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = UpSampling2D((4, 4))(x)
     x = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = UpSampling2D((4, 2))(x)
+    x = UpSampling2D((4, 4))(x)
     x = Conv2D(4 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv2D(2 * num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
-    latent_space = x
+    x = Conv2D(num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
+    # latent_space = x
 
-    concat = monaco_plan(latent_space, num_cp)
-
-    return Model(inp, concat)
+    # concat = monaco_plan(latent_space, num_cp)
+    x = Flatten()(x)
+    return Model(inp, x)
     
     
 

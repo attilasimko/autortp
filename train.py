@@ -9,7 +9,7 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
 import tensorflow as tf
-tf.keras.mixed_precision.set_global_policy('mixed_float16')
+# tf.keras.mixed_precision.set_global_policy('mixed_float16')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
@@ -39,6 +39,13 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
 x, y = generate_data(batch_size, (32, 32, 32), 20)
 y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
+
+x = tf.Variable(x, dtype=tf.float32)
+with tf.GradientTape(persistent=True) as tape:
+    predictions = model(x)
+    loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
+gradients = tape.gradient(loss_value, predictions)
+
 pred = model.predict_on_batch(x)
 loss_val = loss_fn(y, pred)
 
