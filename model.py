@@ -41,8 +41,8 @@ def build_model(batch_size=1, num_cp=6):
     x = Conv2D(num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
     latent_space = x
 
-    concat = monaco_plan(latent_space, num_cp)
-    x = Flatten()(x)
+    x = monaco_plan(latent_space, num_cp)
+    
     return Model(inp, x)
     
     
