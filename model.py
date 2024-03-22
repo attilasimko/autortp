@@ -39,10 +39,9 @@ def build_model(batch_size=1, num_cp=6):
     x = Conv2D(4 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = Conv2D(num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    latent_space = x
 
-    x = monaco_plan(latent_space, num_cp)
-    
+    x = monaco_plan(x, num_cp)
+
     return Model(inp, x)
     
     
@@ -57,7 +56,7 @@ def monaco_plan(latent_space, num_cp):
     leaf_lower = tf.math.cumprod(leaf_lower, axis=2, exclusive=True)
     leaf_upper = tf.math.cumprod(leaf_upper, axis=2, exclusive=True, reverse=True)
     leaf_total = tf.concat([leaf_upper, leaf_lower], 2)
-    leafs = Flatten()(leaf_total)
+    
     # leaf_total = tf.split(leaf_total, num_cp, axis=3)
     # for i in range(num_cp):
     #     leaf_lower = leaf_total[i][..., 0:1]
