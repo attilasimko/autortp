@@ -38,7 +38,7 @@ class save_gif():
         anim = animation.FuncAnimation(self.fig, self.animate, init_func=self.init,
                                         frames=self.num_frames)
         anim.save(save_path, writer=animation.PillowWriter(fps=self.fps, codec='libx264'))
-        experiment.log_image(save_path, step=epoch, overwrite=False)
+        experiment.log_image(save_path, step=epoch, overwrite=True)
         plt.close()
     
     def animate(self, i):
