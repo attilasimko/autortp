@@ -52,7 +52,7 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 for epoch in range(n_epochs):
     training_loss = []
     for i in range(epoch_length):
-        x, y = generate_data(batch_size, (32, 32, 32), 20)
+        x, y = generate_data(batch_size, (32, 32, 32))
         y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)

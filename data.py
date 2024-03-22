@@ -21,4 +21,4 @@ def generate_data(batch_size=1, center=None, sigma=None):
         ct = np.where(mask, 1.0, 0.2)
         data.append(np.expand_dims(np.stack([ct, mask], axis=-1), axis=0))
         dose.append(np.expand_dims(np.expand_dims(dose_scale*mask, axis=0), axis=-1))
-    return np.concatenate(data, 0), np.concatenate(dose, 0)
+    return np.concatenate(data, 0).astype(np.float32), np.concatenate(dose, 0).astype(np.float32)
