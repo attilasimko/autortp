@@ -113,6 +113,7 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     dose = np.zeros_like(y)[0, ..., 0]
 
     pred = model.predict_on_batch(x)
+    pred = tf.where(tf.greater(pred, 0.5), 1.0, 0.0)
 
     absorption_matrices = np.split(get_absorption_matrices(x[..., 0:1], num_cp), num_cp, -1)
     leafs = vector_to_monaco_param(pred, leaf_length, num_cp)
