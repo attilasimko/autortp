@@ -37,7 +37,7 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 
 # Debug part
 # loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
-# x, y = generate_data(batch_size, (32, 32, 32), 20)
+# x, y = generate_data(batch_size, 0)
 # y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
 
 # x = tf.Variable(x, dtype=tf.float32)
@@ -52,7 +52,7 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 for epoch in range(n_epochs):
     training_loss = []
     for i in range(epoch_length):
-        x, y = generate_data(batch_size, (32, 32, 32))
+        x, y = generate_data(batch_size)
         y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)

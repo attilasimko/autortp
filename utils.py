@@ -108,7 +108,7 @@ def get_rays(ray_matrices, absorption_matrices, leafs):
     return ray_strengths
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
-    x, y = generate_data(1, (32, 32, 32), 20)
+    x, y = generate_data(1, 0)
     num_step = 4
     dose = np.zeros_like(y)[0, ..., 0]
 
