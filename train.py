@@ -6,7 +6,7 @@ from utils import *
 import numpy as np
 import os 
 import tensorflow.keras.backend as K
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras.models import Model
 import tensorflow as tf
 # tf.keras.mixed_precision.set_global_policy('mixed_float16')
@@ -17,7 +17,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 n_epochs = 50
 epoch_length = 1000
 batch_size = 1
-learning_rate = 0.0001
+learning_rate = 0.001
 
 # Number of control points
 num_cp = 3
@@ -32,22 +32,22 @@ ray_matrices = get_monaco_projections(num_cp)
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 model = build_model(batch_size, num_cp)
-model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
+model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimizer=RMSprop(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
-loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
-x, y = generate_data(batch_size, (32, 32, 32), 20)
-y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
+# loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
+# x, y = generate_data(batch_size, (32, 32, 32), 20)
+# y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
 
-x = tf.Variable(x, dtype=tf.float32)
-with tf.GradientTape(persistent=True) as tape:
-    predictions = model(x)
-    loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
-gradients = tape.gradient(loss_value, predictions)
+# x = tf.Variable(x, dtype=tf.float32)
+# with tf.GradientTape(persistent=True) as tape:
+#     predictions = model(x)
+#     loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
+# gradients = tape.gradient(loss_value, predictions)
 
-pred = model.predict_on_batch(x)
-loss_val = loss_fn(y, pred)
+# pred = model.predict_on_batch(x)
+# loss_val = loss_fn(y, pred)
 
 for epoch in range(n_epochs):
     training_loss = []

@@ -93,7 +93,7 @@ class save_gif():
         self.im4 = plt.imshow(dose_slice, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
         plt.colorbar()
 
-def get_rays(ray_matrices, leafs):
+def get_rays(ray_matrices, absorption_matrices, leafs):
     ray_strengths = []
     for batch_idx in range(leafs.shape[0]):
         for cp_idx in range(len(ray_matrices)):
@@ -102,7 +102,9 @@ def get_rays(ray_matrices, leafs):
                 current_leafs = leafs[batch_idx, ..., slice_idx, cp_idx]
                 ray_matrix = tf.cast(ray_matrices[cp_idx][batch_idx, ...], dtype=tf.int32)
                 ray_slices.append(tf.gather(current_leafs, ray_matrix))
-            ray_strengths.append(tf.stack(ray_slices, -1))
+            ray_stack = tf.stack(ray_slices, -1)
+            absorbed_rays = tf.multiply(ray_stack, absorption_matrices[cp_idx][batch_idx, :, :, 0])
+            ray_strengths.append(absorbed_rays)
     return ray_strengths
 
 def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
@@ -114,7 +116,7 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
 
     absorption_matrices = np.split(get_absorption_matrices(x[..., 0:1], num_cp), num_cp, -1)
     leafs = vector_to_monaco_param(pred, leaf_length, num_cp)
-    ray_strengths = get_rays(ray_matrices, leafs)
+    ray_strengths = get_rays(ray_matrices, absorption_matrices, leafs)
     dose = tf.reduce_sum(ray_strengths, axis=0)
 
     for i in range(num_cp):
