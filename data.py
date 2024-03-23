@@ -22,8 +22,8 @@ def generate_data(batch_size=1, idx=None):
             # mask = np.array(file['Kidney'], dtype=float)
 
 
-        sigma = np.random.randint(5, 15)
-        center = [32, 32, np.random.randint(12, 52)]
+        sigma = 10 # np.random.randint(5, 15)
+        center = [32, 32, 32] # np.random.randint(12, 52)]
         d2 = (x - center[0])**2 + (y - center[1])**2 + (z - center[2])**2
         gaussian = np.exp(-d2 / (2 * sigma**2))
         gaussian /= np.max(gaussian)
