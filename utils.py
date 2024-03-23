@@ -108,7 +108,7 @@ def get_rays(ray_matrices, absorption_matrices, leafs):
                 ray_matrix = tf.cast(ray_matrices[cp_idx][batch_idx, ...], dtype=tf.int32)
                 ray_slices.append(tf.gather(current_leafs, ray_matrix))
             ray_stack = tf.stack(ray_slices, -1)
-            absorbed_rays = tf.multiply(ray_stack, absorption_matrices[cp_idx][batch_idx, :, :, 0])
+            absorbed_rays = tf.multiply(ray_stack, absorption_matrices[cp_idx][batch_idx, :, :, :, 0])
             ray_strengths.append(absorbed_rays)
     return ray_strengths
 
