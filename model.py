@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
+from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
 import numpy as np
 from scipy.ndimage import rotate
 import tensorflow_addons as tfa
@@ -59,7 +59,7 @@ def MonacoLayer(latent_vector, ct, num_cp):
     leaf_lower, leaf_upper = tf.split(leaf_total, 2, axis=1)
     leaf_lower = tf.math.cumprod(leaf_lower, axis=1)
     leaf_upper = tf.math.cumprod(leaf_upper, axis=1, reverse=True)
-    leaf_total = tf.concat([leaf_upper, leaf_lower], 1)
+    leaf_total = Concatenate(name="mlc", axis=1)([leaf_upper, leaf_lower])
     
     ray_strengths = get_rays(ray_matrices, absorption_matrices, leaf_total)
 
@@ -80,18 +80,18 @@ def MonacoLayer(latent_vector, ct, num_cp):
 
 def get_rays(ray_matrices, absorption_matrices, leafs):
     ray_strengths = []
-    for batch_idx in range(leafs.shape[0]):
+    for cp_idx in range(len(ray_matrices)):
         batch_rays = []
-        for cp_idx in range(len(ray_matrices)):
+        for batch_idx in range(leafs.shape[0]):
             ray_slices = []
             for slice_idx in range(leafs.shape[2]):
                 current_leafs = leafs[batch_idx, ..., slice_idx, cp_idx]
                 ray_matrix = tf.cast(ray_matrices[cp_idx][batch_idx, ...], dtype=tf.int32)
                 ray_slices.append(tf.gather(current_leafs, ray_matrix))
             ray_stack = tf.stack(ray_slices, -1)
-            absorbed_rays = tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx], name=f"rays_{cp_idx}")
+            absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx], name=f"rays_{cp_idx}"), 0)
             batch_rays.append(absorbed_rays)
-        ray_strengths.append(tf.stack(batch_rays, 0))
+        ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
     return ray_strengths
 
 def get_absorption_matrices(ct, num_cp):

@@ -9,17 +9,16 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, absorption_matrix, ct, delivered_dose, ground_truth, ray_strengths, experiment, epoch, save_path):
+    def __init__(self, ct, mlc, delivered_dose, ground_truth, ray_strengths, experiment, epoch, save_path):
         matplotlib.use('agg')
-        self.absorption_matrix = absorption_matrix[..., 0]
-        self.delivered_dose = delivered_dose[0, :, :, :]
-        self.ground_truth = ground_truth[0, ..., 0]
+        self.delivered_dose = delivered_dose
+        self.ground_truth = ground_truth
         self.ct = ct
         # self.mus = mus
         self.experiment = experiment
         self.epoch = epoch
         self.save_path = save_path
-        self.mlc = delivered_dose[0, :, :, 3]
+        self.mlc = mlc
         self.ray_matrix = ray_strengths
 
         # print("Lower leafs: ", leafs[0, 0, :])
@@ -30,7 +29,7 @@ class save_gif():
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
-        self.num_frames = ground_truth.shape[3]
+        self.num_frames = ground_truth.shape[2]
         self.makegif(save_path, experiment, epoch)
     
     def makegif(self, save_path, experiment, epoch):
@@ -99,18 +98,13 @@ class save_gif():
 
 def plot_res(experiment, model, num_cp, epoch):
     x, y = generate_data(1, 0)
-    num_step = 4
-    dose = np.zeros_like(y)[0, ..., 0]
-    # monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc_lower").output, model.get_layer("mlc_upper").output, model.layers[-1].output])
-    pred = model.predict_on_batch(x)
-    # pred = tf.where(tf.greater(pred, 0.5), 1.0, 0.0)
-
-    absorption_matrices = pred
-    ray_strengths =pred
-    dose = pred
-
     for i in range(num_cp):
-        save_gif(absorption_matrices[i][0, ...], x[0, :, :, :, 0], dose, y, ray_strengths[i], experiment, epoch, f"imgs/{i}.gif")
+        monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{i}").output, model.layers[-1].output])
+        mlcs, ray_strength, dose = monaco_model.predict_on_batch(x)
+        # pred = tf.where(tf.greater(pred, 0.5), 1.0, 0.0)
+        
+
+        save_gif(x[0, :, :, :, 0], mlcs[0, ..., i], dose[0, ...], y[0, ..., 0], ray_strength[0, ...], experiment, epoch, f"imgs/{i}.gif")
     
 
 def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):
