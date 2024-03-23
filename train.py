@@ -33,8 +33,7 @@ model.compile(loss=mean_absolute_error, optimizer=Adam(learning_rate=learning_ra
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
-x, y = generate_data(batch_size, 0)
-
+# x, y = generate_data(batch_size, 0)
 # monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{0}").output, model.layers[-1].output])
 # monaco_model.compile(loss=mean_absolute_error, optimizer=Adam(learning_rate=learning_rate))
 # x = tf.Variable(x, dtype=tf.float32)

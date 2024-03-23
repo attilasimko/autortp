@@ -43,11 +43,11 @@ def build_model(batch_size=1, num_cp=6):
     x = UpSampling2D((4, 4))(x)
     x = Conv2D(4 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = Conv2D(num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    latent_space = Conv2D(num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
 
-    x = MonacoLayer(x, inp, num_cp)
+    monaco_dose = MonacoLayer(latent_space, inp, num_cp)
 
-    return Model(inp, x)
+    return Model(inp, monaco_dose)
 
 def MonacoLayer(latent_vector, ct, num_cp):
     ray_matrices = get_monaco_projections(num_cp)
@@ -96,8 +96,7 @@ def get_rays(ray_matrices, absorption_matrices, leafs):
 
 def get_absorption_matrices(ct, num_cp):
     batches = []
-    absorption_scalar = 1 / (96)
-    absorption = tf.identity(tf.ones(ct.shape) * absorption_scalar)
+    absorption = tf.stop_gradient(tf.identity(tf.ones(ct.shape)))
     for batch in range(ct.shape[0]):
         rotated_arrays = []
         for idx in range(num_cp):
