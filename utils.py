@@ -87,7 +87,7 @@ class save_gif():
                         labelleft=False,
                         labelbottom=False)
         self.im3ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
-        self.im3 = plt.imshow(gt_slice, alpha=.2, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
+        self.im3 = plt.imshow(gt_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
         plt.subplot(224)
@@ -96,7 +96,7 @@ class save_gif():
                         labelleft=False,
                         labelbottom=False)
         self.im4ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
-        self.im4 = plt.imshow(dose_slice, alpha=.2, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
+        self.im4 = plt.imshow(dose_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 def get_rays(ray_matrices, absorption_matrices, leafs):
     ray_strengths = []
@@ -118,7 +118,7 @@ def plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch):
     dose = np.zeros_like(y)[0, ..., 0]
 
     pred = model.predict_on_batch(x)
-    pred = tf.where(tf.greater(pred, 0.5), 1.0, 0.0)
+    # pred = tf.where(tf.greater(pred, 0.5), 1.0, 0.0)
 
     absorption_matrices = np.split(get_absorption_matrices(x[..., 0:1], num_cp), num_cp, -1)
     leafs = vector_to_monaco_param(pred, leaf_length, num_cp)
