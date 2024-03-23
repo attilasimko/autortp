@@ -7,6 +7,7 @@ import numpy as np
 import os 
 import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
+from tensorflow.keras.losses import mean_absolute_error
 from tensorflow.keras.models import Model
 import tensorflow as tf
 # tf.keras.mixed_precision.set_global_policy('mixed_float16')
@@ -26,19 +27,16 @@ leaf_length = 64
 # Number of Monte Carlo points
 grid_mc = 4
 # Generate ray matrices for each control point
-ray_matrices = get_monaco_projections(num_cp)
 
 # Comet_ml
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 model = build_model(batch_size, num_cp)
-model.compile(loss=rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length), optimizer=Adam(learning_rate=learning_rate))
+model.compile(loss=mean_absolute_error, optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
-# loss_fn = rtp_loss(ray_matrices, num_cp, grid_mc, leaf_length)
-# x, y = generate_data(batch_size, 0)
-# y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
+x, y = generate_data(batch_size, 0)
 
 # x = tf.Variable(x, dtype=tf.float32)
 # with tf.GradientTape(persistent=True) as tape:
@@ -46,16 +44,12 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 #     loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
 # gradients = tape.gradient(loss_value, predictions)
 
-# pred = model.predict_on_batch(x)
-# loss_val = loss_fn(y, pred)
-
 for epoch in range(n_epochs):
     training_loss = []
     for i in range(epoch_length):
         x, y = generate_data(batch_size)
-        y = np.concatenate([y, get_absorption_matrices(x[..., 0:1], num_cp)], -1)
         loss = model.train_on_batch(x, y)
         training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     experiment.log_metric("loss", np.mean(training_loss), step=epoch)
-    plot_res(experiment, model, ray_matrices, leaf_length, num_cp, epoch)
+    plot_res(experiment, model, num_cp, epoch)
