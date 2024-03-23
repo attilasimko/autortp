@@ -96,7 +96,8 @@ def get_rays(ray_matrices, absorption_matrices, leafs):
 
 def get_absorption_matrices(ct, num_cp):
     batches = []
-    absorption = tf.stop_gradient(tf.identity(tf.ones(ct.shape)))
+    absorption_scalar = 1 / (96)
+    absorption = tf.stop_gradient(tf.identity(tf.ones(ct.shape) * absorption_scalar))
     for batch in range(ct.shape[0]):
         rotated_arrays = []
         for idx in range(num_cp):
