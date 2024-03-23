@@ -18,7 +18,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 n_epochs = 50
 epoch_length = 1000
 batch_size = 1
-learning_rate = 0.0001
+learning_rate = 0.0000001
 
 # Number of control points
 num_cp = 3
@@ -38,10 +38,12 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 # Debug part
 x, y = generate_data(batch_size, 0)
 
+# monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{0}").output, model.layers[-1].output])
+# monaco_model.compile(loss=mean_absolute_error, optimizer=Adam(learning_rate=learning_rate))
 # x = tf.Variable(x, dtype=tf.float32)
 # with tf.GradientTape(persistent=True) as tape:
-#     predictions = model(x)
-#     loss_value = model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
+#     predictions = monaco_model(x)
+#     loss_value = monaco_model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
 # gradients = tape.gradient(loss_value, predictions)
 
 for epoch in range(n_epochs):
