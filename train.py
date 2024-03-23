@@ -7,7 +7,7 @@ import numpy as np
 import os 
 import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
-from tensorflow.keras.losses import mean_absolute_error, mean_absolute_percentage_error
+from tensorflow.keras.losses import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 from tensorflow.keras.models import Model
 import tensorflow as tf
 # tf.keras.mixed_precision.set_global_policy('mixed_float16')
@@ -29,7 +29,7 @@ leaf_length = 64
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 model = build_model(batch_size, num_cp)
-model.compile(loss=mean_absolute_error, optimizer=Adam(learning_rate=learning_rate))
+model.compile(loss=mean_squared_error, optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
 # Debug part
