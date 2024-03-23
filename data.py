@@ -15,7 +15,7 @@ def generate_data(batch_size=1, idx=None):
 
     for batch in range(batch_size):
         if (idx is None):
-            idx = np.random.randint(len(data_list))
+            idx = 0 # np.random.randint(len(data_list))
         with np.load(data_path + data_list[idx]) as file:
             ct = np.array(file['CT'], dtype=float)
             ct = np.interp(ct, (ct.min(), ct.max()), (-1.0, 1.0))

@@ -18,15 +18,12 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 n_epochs = 50
 epoch_length = 1000
 batch_size = 1
-learning_rate = 0.000001
+learning_rate = 0.00001
 
 # Number of control points
 num_cp = 3
 # Length of each leaf
 leaf_length = 64
-# Number of Monte Carlo points
-grid_mc = 4
-# Generate ray matrices for each control point
 
 # Comet_ml
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
