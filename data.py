@@ -8,7 +8,7 @@ def generate_data(batch_size=1, idx=None):
     data_list = os.listdir(data_path)
     data = []
     dose = []
-    dose_scale = 1.2
+    dose_scale = 2.4
     shape = (64, 64, 64)
     ct = np.ones(shape, dtype=float)
     x, y, z = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2]))

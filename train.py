@@ -7,7 +7,7 @@ import numpy as np
 import os 
 import tensorflow.keras.backend as K
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
-from tensorflow.keras.losses import mean_absolute_error
+from tensorflow.keras.losses import mean_absolute_error, mean_absolute_percentage_error
 from tensorflow.keras.models import Model
 import tensorflow as tf
 # tf.keras.mixed_precision.set_global_policy('mixed_float16')
@@ -42,7 +42,7 @@ x, y = generate_data(batch_size, 0)
 # monaco_model.compile(loss=mean_absolute_error, optimizer=Adam(learning_rate=learning_rate))
 # x = tf.Variable(x, dtype=tf.float32)
 # with tf.GradientTape(persistent=True) as tape:
-#     predictions = monaco_model(x)
+#     predictions = monaco_model(x)[0]
 #     loss_value = monaco_model.loss(tf.Variable(y, dtype=tf.float32), predictions)   
 # gradients = tape.gradient(loss_value, predictions)
 
