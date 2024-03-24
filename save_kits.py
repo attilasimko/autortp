@@ -119,7 +119,12 @@ for patient in patients[:10]:
         labels, count = g.countIslands()
 		
         Kidney = np.array(labels == 1, dtype=float)
-        # mass = np.array((Kidney * np.mgrid[0:Kidney.shape[0], 0:Kidney.shape[1], 0:Kidney.shape[2]]).sum(1).sum(1).sum(1)/Kidney.sum(), dtype=np.int16)
+        mass = np.array((Kidney * np.mgrid[0:Kidney.shape[0], 0:Kidney.shape[1], 0:Kidney.shape[2]]).sum(1).sum(1).sum(1)/Kidney.sum(), dtype=np.int16)
+	
+        offset = [(256 - mass[0]) * 2, (256 - mass[1]) * 2, 0]
+        pad = ((offset[0] if offset[0] > 0 else 0, -offset[0] if offset[0] < 0 else 0), (offset[1] if offset[1] > 0 else 0, -offset[1] if offset[1] < 0 else 0), (0, 0))
+        Kidney = np.pad(Kidney, pad, mode='constant', constant_values=0)
+        ct_stack = np.pad(ct_stack, pad, mode='constant', constant_values=-1000)
 		
         # ct_stack = ct_stack[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
         # Kidney = a[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
