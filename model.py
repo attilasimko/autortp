@@ -67,7 +67,7 @@ def MonacoLayer(latent_vector, ct, num_cp):
     mu_total = Flatten()(mu_total)
     mu_total = Dense(4 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
     mu_total = Dense(2 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
-    mu_total = Dense(num_cp, activation='relu', kernel_initializer="zeros", name="mus")(mu_total) # , activity_regularizer=mu_reg(mu_alpha)
+    mu_total = Dense(num_cp, activation='relu', kernel_initializer="he_normal", name="mus")(mu_total) # , activity_regularizer=mu_reg(mu_alpha)
     mu_total = tf.split(mu_total, num_cp, axis=1)
     
     ray_strengths = get_rays(ray_matrices, absorption_matrices, leaf_total, mu_total)
