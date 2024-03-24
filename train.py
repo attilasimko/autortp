@@ -21,7 +21,7 @@ batch_size = 1
 learning_rate = 0.0001
 
 # Number of control points
-num_cp = 5
+num_cp = 24
 # Length of each leaf
 leaf_length = 64
 
