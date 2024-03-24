@@ -95,7 +95,7 @@ class MonacoDecoder():
                     ray_slices.append(tf.gather(current_leafs, ray_matrix))
                 ray_stack = tf.stack(ray_slices, -1)
                 absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx]), 0)
-                batch_rays.append(tf.multiply(absorbed_rays, mus[cp_idx][0, 0]) + self.mu_epsilon)
+                batch_rays.append(tf.multiply(absorbed_rays, mus[cp_idx][0, 0] + self.mu_epsilon))
             ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
         return ray_strengths
 
