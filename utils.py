@@ -75,7 +75,7 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.im2 = plt.imshow(ray_slice, cmap="gray", vmin=0, vmax=1, interpolation="none")
+        self.im2 = plt.imshow(ray_slice, cmap="gray", vmin=0, vmax=np.max(self.ray_matrix), interpolation="none")
 
 
         plt.subplot(223)
