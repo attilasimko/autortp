@@ -61,24 +61,20 @@ def MonacoLayer(latent_vector, ct, num_cp):
     leaf_upper = tf.math.cumprod(leaf_upper, axis=1, reverse=True)
     leaf_total = Concatenate(name="mlc", axis=1)([leaf_upper, leaf_lower])
     
-    ray_strengths = get_rays(ray_matrices, absorption_matrices, leaf_total)
 
-    # mus = []
-    # mu_total = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_vector)
-    # mu_total = Conv2D(4, 3, activation='relu', padding='same', kernel_initializer="he_normal")(mu_total)
-    # mu_total = Flatten()(mu_total)
-    # mu_total = Dense(4 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
-    # mu_total = Dense(2 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
-    # mu_total = Dense(num_cp, activation='sigmoid', kernel_initializer="zeros")(mu_total) # , activity_regularizer=mu_reg(mu_alpha)
-    # mu_total = tf.split(mu_total, num_cp, axis=1)
-    # for i in range(num_cp):
-    #     mus.append(Reshape((), name=f"mu_{i}")(mu_total[i]))
+    mu_total = Conv2D(2 * num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_vector)
+    mu_total = Conv2D(4, 3, activation='relu', padding='same', kernel_initializer="he_normal")(mu_total)
+    mu_total = Flatten()(mu_total)
+    mu_total = Dense(4 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
+    mu_total = Dense(2 * num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
+    mu_total = Dense(num_cp, activation='relu', kernel_initializer="zeros", name="mus")(mu_total) # , activity_regularizer=mu_reg(mu_alpha)
+    mu_total = tf.split(mu_total, num_cp, axis=1)
     
-    
+    ray_strengths = get_rays(ray_matrices, absorption_matrices, leaf_total, mu_total)
     
     return tf.reduce_sum(ray_strengths, 0)
 
-def get_rays(ray_matrices, absorption_matrices, leafs):
+def get_rays(ray_matrices, absorption_matrices, leafs, mus):
     ray_strengths = []
     for cp_idx in range(len(ray_matrices)):
         batch_rays = []
@@ -90,7 +86,7 @@ def get_rays(ray_matrices, absorption_matrices, leafs):
                 ray_slices.append(tf.gather(current_leafs, ray_matrix))
             ray_stack = tf.stack(ray_slices, -1)
             absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx], name=f"rays_{cp_idx}"), 0)
-            batch_rays.append(absorbed_rays)
+            batch_rays.append(absorbed_rays * mus[cp_idx][0, 0])
         ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
     return ray_strengths
 
