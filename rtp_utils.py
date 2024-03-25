@@ -101,7 +101,7 @@ class save_gif():
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
-        self.imw = plt.imshow(weight_slice, vmin=1, vmax=np.max(self.structure_weights), cmap="jet", interpolation='bilinear')
+        self.imw = plt.imshow(weight_slice, vmin=1, vmax=np.max(self.structure_weights), cmap="hot", interpolation='bilinear')
 
         plt.subplot(235)
         plt.tick_params(left=False,
