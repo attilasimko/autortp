@@ -3,3 +3,4 @@ __pycache__/data.cpython-37.pyc
 __pycache__/model.cpython-37.pyc
 __pycache__/data.cpython-38.pyc
 imgs/
+weights/
