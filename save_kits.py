@@ -11,7 +11,7 @@ from rt_utils import RTStructBuilder
 import sys
 from scipy.ndimage import zoom
 sys.path.insert(1, os.path.abspath('.'))
-import utils
+import rtp_utils
 
 data_path = "/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/RAW/kits19/original/"
 base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/ARTP/"

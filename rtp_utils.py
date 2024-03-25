@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from data import generate_data
-from model import *
+from rtp_data import generate_data
+from rtp_model import *
 from matplotlib import animation
 import matplotlib
 import tensorflow as tf
@@ -10,25 +10,31 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, model, cp_idx, num_cp, experiment, epoch):
+    def __init__(self, model, seg_model, structure_weights, cp_idx, num_cp, experiment, epoch):
         matplotlib.use('agg')
         save_path = f"imgs/{cp_idx}.gif"
-        x, y = generate_data(1, 0)
+        x, y = generate_data(seg_model, 1, 0)
         decoder = MonacoDecoder(num_cp, x.shape)
         monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{cp_idx}").output, model.get_layer(f"mus").output, model.layers[-1].output])
 
         mlcs, _, mus, dose = monaco_model.predict_on_batch(x)     
         absorption_matrices = decoder.get_absorption_matrices(x[..., 0:1])   
         ray_strength = decoder.get_rays(absorption_matrices, mlcs, mus)
-        self.delivered_dose = dose[0, ...]
+        self.delivered_dose = dose[0, ..., 0]
         self.ground_truth = y[0, ..., 0]
         self.ct = x[0, ..., 0]
+
+        self.structure_weights = structure_weights
+        self.weights = np.ones_like(self.ct)
+        for i in range(len(structure_weights)):
+            self.weights += structure_weights[i]
+
         # self.mus = mus
         self.experiment = experiment
         self.epoch = epoch
         self.save_path = save_path
         self.mlc = mlcs[0, ..., cp_idx]
-        self.ray_matrix = ray_strength[cp_idx].numpy()
+        self.ray_matrix = ray_strength[cp_idx].numpy()[0, ...]
 
         # print("Lower leafs: ", leafs[0, 0, :])
         # print("Upper leafs: ", leafs[0, 1, :])
@@ -53,13 +59,15 @@ class save_gif():
         gt_slice = self.ground_truth[:, :, i]
         ray_slice = self.ray_matrix[:, :, i]
         ct_slice = self.ct[:, :, i]
+        weight_slice = self.weights[:, :, i]
 
         self.im2.set_array(ray_slice)
         self.im3.set_array(gt_slice)
         self.im4.set_array(dose_slice)
         self.im3ct.set_array(ct_slice)
         self.im4ct.set_array(ct_slice)
-        return [self.im2, self.im3, self.im4, self.im3ct, self.im4ct]
+        self.imw.set_array(weight_slice)
+        return [self.im2, self.im3, self.im4, self.im3ct, self.im4ct, self.imw]
 
     def init(self):
         mono_font = {'fontname':'monospace'}
@@ -70,6 +78,7 @@ class save_gif():
         gt_slice = self.ground_truth[:, :, 0]
         ray_slice = self.ray_matrix[:, :, 0]
         ct_slice = self.ct[:, :, 0]
+        weight_slice = self.weights[:, :, 0]
         
         plt.subplot(221)
         plt.tick_params(left=False,
@@ -87,7 +96,14 @@ class save_gif():
         self.im2 = plt.imshow(ray_slice, cmap="gray", vmin=0, vmax=np.max(self.ray_matrix), interpolation="none")
 
 
-        plt.subplot(223)
+        plt.subplot(234)
+        plt.tick_params(left=False,
+                        bottom=False,
+                        labelleft=False,
+                        labelbottom=False)
+        self.imw = plt.imshow(weight_slice, vmin=1, vmax=np.max(self.structure_weights), cmap="jet", interpolation='bilinear')
+
+        plt.subplot(235)
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,
@@ -96,7 +112,7 @@ class save_gif():
         self.im3 = plt.imshow(gt_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
-        plt.subplot(224)
+        plt.subplot(236)
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,

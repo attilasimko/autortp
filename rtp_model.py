@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv3D, MaxPooling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
+from tensorflow.keras.layers import Input, Conv3D, AveragePooling2D, MaxPooling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
 import numpy as np
 from scipy.ndimage import rotate
 import tensorflow_addons as tfa
@@ -25,6 +25,7 @@ class mu_reg(keras.regularizers.Regularizer):
 
 def build_model(batch_size, img_shape, num_cp=6, decoder="monaco"):
     inp = Input(shape=img_shape[1:], batch_size=batch_size)
+
     x = Conv3D(4, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(inp)
     x = Conv3D(16, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((4, 4, 4))(x)
@@ -46,7 +47,7 @@ def build_model(batch_size, img_shape, num_cp=6, decoder="monaco"):
     else:
         raise ValueError("Decoder not implemented")
 
-    return Model(inp, dose)
+    return Model(inp, tf.concat([dose, inp[..., 1:]], 4))
 
 class MonacoDecoder():
     def __init__(self, num_cp, shape, leaf_density=1):
@@ -93,7 +94,7 @@ class MonacoDecoder():
         
         ray_strengths = self.get_rays(absorption_matrices, leaf_total, mu_total)
         
-        return tf.reduce_sum(ray_strengths, 0)
+        return tf.expand_dims(tf.reduce_sum(ray_strengths, 0), -1)
 
     def get_rays(self, absorption_matrices, leafs, mus):
         ray_strengths = []
