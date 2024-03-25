@@ -21,7 +21,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 50
-epoch_length = 10000
+epoch_length = 1000
 batch_size = 1
 learning_rate = 0.0001
 
@@ -63,12 +63,12 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 # gradients = tape.gradient(loss_value, predictions)
 
 for epoch in range(n_epochs):
-    # training_loss = []
-    # x, y = generate_data(seg_model, batch_size)
-    # for i in range(epoch_length):
-    #     loss = model.train_on_batch(x, y)
-    #     training_loss.append(loss)
-    # print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
-    # experiment.log_metric("loss", np.mean(training_loss), step=epoch)
+    training_loss = []
+    x, y = generate_data(seg_model, batch_size)
+    for i in range(epoch_length):
+        loss = model.train_on_batch(x, y)
+        training_loss.append(loss)
+    print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
+    experiment.log_metric("loss", np.mean(training_loss), step=epoch)
     for i in range(num_cp):
         save_gif(model, seg_model, decoder_info, weights, i, num_cp, experiment, epoch)
