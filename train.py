@@ -45,7 +45,7 @@ seg_model.trainable = False
 for l in seg_model.layers:
     l.trainable = False
 
-weights = [10.0, 5.0, 8.0, 8.0, 3.0]
+weights = [10.0, 3.0, 8.0, 8.0, 3.0]
 x, y = generate_data(seg_model, batch_size, 0)
 model = build_model(batch_size, x.shape, num_cp, "monaco")
 model.compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
