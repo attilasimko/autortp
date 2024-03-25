@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from data import generate_data
+from model import *
 from matplotlib import animation
 import matplotlib
 import tensorflow as tf
@@ -9,17 +10,25 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, ct, mlc, delivered_dose, ground_truth, ray_strengths, experiment, epoch, save_path):
+    def __init__(self, model, cp_idx, num_cp, experiment, epoch):
         matplotlib.use('agg')
-        self.delivered_dose = delivered_dose
-        self.ground_truth = ground_truth
-        self.ct = ct
+        save_path = f"imgs/{cp_idx}.gif"
+        x, y = generate_data(1, 0)
+        decoder = MonacoDecoder(num_cp, x.shape)
+        monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{cp_idx}").output, model.get_layer(f"mus").output, model.layers[-1].output])
+
+        mlcs, _, mus, dose = monaco_model.predict_on_batch(x)     
+        absorption_matrices = decoder.get_absorption_matrices(x[..., 0:1])   
+        ray_strength = decoder.get_rays(absorption_matrices, mlcs, mus)
+        self.delivered_dose = dose[0, ...]
+        self.ground_truth = y[0, ..., 0]
+        self.ct = x[0, ..., 0]
         # self.mus = mus
         self.experiment = experiment
         self.epoch = epoch
         self.save_path = save_path
-        self.mlc = mlc
-        self.ray_matrix = ray_strengths
+        self.mlc = mlcs[0, ..., cp_idx]
+        self.ray_matrix = ray_strength[cp_idx].numpy()
 
         # print("Lower leafs: ", leafs[0, 0, :])
         # print("Upper leafs: ", leafs[0, 1, :])
@@ -29,7 +38,7 @@ class save_gif():
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
-        self.num_frames = ground_truth.shape[2]
+        self.num_frames = self.ct.shape[2]
         self.makegif(save_path, experiment, epoch)
     
     def makegif(self, save_path, experiment, epoch):
@@ -96,15 +105,6 @@ class save_gif():
         self.im4 = plt.imshow(dose_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
-def plot_res(experiment, model, num_cp, epoch):
-    x, y = generate_data(1, 0)
-    for i in range(num_cp):
-        monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{i}").output, model.layers[-1].output])
-        mlcs, ray_strength, dose = monaco_model.predict_on_batch(x)
-        # pred = tf.where(tf.greater(pred, 0.5), 1.0, 0.0)
-        
-
-        save_gif(x[0, :, :, :, 0], mlcs[0, ..., i], dose[0, ...], y[0, ..., 0], ray_strength[0, ...], experiment, epoch, f"imgs/{i}.gif")
     
 
 def get_dose_value(absorption_matrices, ray_matrices, leafs, mus, mc_point):

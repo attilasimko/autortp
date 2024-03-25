@@ -122,15 +122,16 @@ for patient in patients[:10]:
         mass = np.array((Kidney * np.mgrid[0:Kidney.shape[0], 0:Kidney.shape[1], 0:Kidney.shape[2]]).sum(1).sum(1).sum(1)/Kidney.sum(), dtype=np.int16)
 	
         offset = [(256 - mass[0]) * 2, (256 - mass[1]) * 2, 0]
-        pad = ((offset[0] if offset[0] > 0 else 0, -offset[0] if offset[0] < 0 else 0), (offset[1] if offset[1] > 0 else 0, -offset[1] if offset[1] < 0 else 0), (0, 0))
+        offset_value = np.max(np.abs(offset))
+        pad = ((offset_value if offset[0] > 0 else 0, offset_value if offset[0] < 0 else 0), (offset_value if offset[1] > 0 else 0, offset_value if offset[1] < 0 else 0), (0, 0))
         Kidney = np.pad(Kidney, pad, mode='constant', constant_values=0)
         ct_stack = np.pad(ct_stack, pad, mode='constant', constant_values=-1000)
 		
         # ct_stack = ct_stack[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
         # Kidney = a[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
-
-        ct_stack = zoom(ct_stack, (64 / ct_stack.shape[0], 64 / ct_stack.shape[1], 64 / ct_stack.shape[2]))
-        Kidney = zoom(Kidney, (64 / Kidney.shape[0], 64 / Kidney.shape[1], 64 / Kidney.shape[2])) > 0.2
+        orig_size = (256, 256, 128)
+        ct_stack = zoom(ct_stack, (orig_size[0] / ct_stack.shape[0], orig_size[1] / ct_stack.shape[1], orig_size[2] / ct_stack.shape[2]))
+        Kidney = zoom(Kidney, (orig_size[0] / Kidney.shape[0], orig_size[1] / Kidney.shape[1], orig_size[2] / Kidney.shape[2])) > 0.2
         
         np.savez_compressed("data/kits19_" + patient,
                             CT = np.array(np.interp(ct_stack, (-1000, 1000), (0, 255)), dtype=np.int16),
