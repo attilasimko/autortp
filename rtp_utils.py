@@ -19,6 +19,7 @@ class save_gif():
         monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{cp_idx}").output, model.get_layer(f"mus").output, model.layers[-1].output])
 
         mlcs, _, mus, dose = monaco_model.predict_on_batch(x)     
+        mlcs = tf.where(mlcs > 0.2, 1.0, 0.0)
         absorption_matrices = decoder.get_absorption_matrices(x[..., 0:1])   
         ray_strength = decoder.get_rays(absorption_matrices, mlcs, mus)
         self.delivered_dose = dose[0, ..., 0]
