@@ -134,15 +134,14 @@ class MonacoDecoder():
 
     def get_absorption_matrices(self, ct):
         batches = []
-        absorption_scalar = 1 / (96)
-        absorption = tf.stop_gradient(tf.identity(tf.ones(ct.shape) * absorption_scalar))
+        absorption = tf.stop_gradient(tf.identity(tf.ones(ct.shape, dtype=tf.float32)))
         for batch in range(ct.shape[0]):
             rotated_arrays = []
             for idx in range(self.num_cp):
                 angle = idx * 360 / self.num_cp
                 array = absorption[batch, ...]
                 array = tfa.image.rotate(array, angle, fill_mode='nearest', interpolation='bilinear')
-                array = 1 - tf.cumsum(array, axis=0)
+                array = array.shape[0] - tf.cumsum(array, axis=0)
                 array = tfa.image.rotate(array, - angle, fill_mode='nearest', interpolation='bilinear')
                 array = tf.where(tf.greater(array, 0), array, 0)
                 array = tf.where(tf.greater(ct[batch, ...], -0.8), array, 0)

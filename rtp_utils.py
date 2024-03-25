@@ -28,7 +28,7 @@ class save_gif():
         self.structure_weights = structure_weights
         self.weights = np.ones_like(self.ct)
         for i in range(len(structure_weights)):
-            self.weights *= structure_weights[i]
+            self.weights = np.where(x[0, ..., i+1] > 0.5, structure_weights[i], self.weights)
 
         # self.mus = mus
         self.experiment = experiment
