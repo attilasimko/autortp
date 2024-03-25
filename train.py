@@ -21,7 +21,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 50
-epoch_length = 1000
+epoch_length = 10000
 batch_size = 1
 learning_rate = 0.0001
 
@@ -70,5 +70,5 @@ for epoch in range(n_epochs):
         training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     experiment.log_metric("loss", np.mean(training_loss), step=epoch)
-    for i in range(num_cp):
+    for i in range(0, num_cp, 4):
         save_gif(model, seg_model, decoder_info, weights, i, num_cp, experiment, epoch)
