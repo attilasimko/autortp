@@ -21,7 +21,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
 n_epochs = 50
-epoch_length = 100
+epoch_length = 10
 batch_size = 1
 learning_rate = 0.0001
 
@@ -47,7 +47,9 @@ for l in seg_model.layers:
 
 weights = [10.0, 3.0, 8.0, 8.0, 3.0]
 x, y = generate_data(seg_model, batch_size, 0)
-model = build_model(batch_size, x.shape, num_cp, "monaco")
+# (Decoder type / Number of control points / Dose shape / Image shape / Number of slices / Leaf length)
+decoder_info = ("monaco", num_cp, (64, 64), (256, 256), x.shape[3], 32)
+model = build_model(batch_size, x.shape, decoder_info)
 model.compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
 
@@ -69,4 +71,4 @@ for epoch in range(n_epochs):
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     experiment.log_metric("loss", np.mean(training_loss), step=epoch)
     for i in range(num_cp):
-        save_gif(model, seg_model, weights, i, num_cp, experiment, epoch)
+        save_gif(model, seg_model, decoder_info, weights, i, num_cp, experiment, epoch)

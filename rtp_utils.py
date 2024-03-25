@@ -10,11 +10,12 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, model, seg_model, structure_weights, cp_idx, num_cp, experiment, epoch):
+    def __init__(self, model, seg_model, decoder_info, structure_weights, cp_idx, num_cp, experiment, epoch):
         matplotlib.use('agg')
         save_path = f"imgs/{cp_idx}.gif"
         x, y = generate_data(seg_model, 1, 0)
-        decoder = MonacoDecoder(num_cp, x.shape)
+        _, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
+        decoder = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
         monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{cp_idx}").output, model.get_layer(f"mus").output, model.layers[-1].output])
 
         mlcs, _, mus, dose = monaco_model.predict_on_batch(x)     
