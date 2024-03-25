@@ -27,7 +27,7 @@ class save_gif():
         self.structure_weights = structure_weights
         self.weights = np.ones_like(self.ct)
         for i in range(len(structure_weights)):
-            self.weights += structure_weights[i]
+            self.weights *= structure_weights[i]
 
         # self.mus = mus
         self.experiment = experiment
