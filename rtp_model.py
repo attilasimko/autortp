@@ -24,16 +24,16 @@ class mu_reg(keras.regularizers.Regularizer):
         return self.alpha * tf.math.reduce_mean(tf.math.abs(weights))
 
 def build_model(batch_size, decoders):
-    inp = Input(shape=(256, 256, 128, 2), batch_size=batch_size)
+    inp = Input(shape=(128, 128, 100, 2), batch_size=batch_size)
 
     x = Conv3D(4, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(inp)
-    x = MaxPooling3D((4, 4, 4))(x)
+    x = MaxPooling3D((4, 4, 5))(x)
     x = Conv3D(8, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = MaxPooling3D((4, 4, 4))(x)
+    x = MaxPooling3D((2, 2, 5))(x)
     x = Conv3D(32, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((2, 2, 4))(x)
     x = Conv3D(64, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
-    x = MaxPooling3D((2, 2, 2))(x)
+    x = MaxPooling3D((2, 2, 1))(x)
     x = x[:, :, :, 0, :]
     latent_space = x
 

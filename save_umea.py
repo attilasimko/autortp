@@ -113,6 +113,7 @@ def get_data(path):
 roi_names = []
 patients = os.listdir(os.path.join(data_path))
 patients = patients
+orig_size = (128, 128, 100)
 
 num_filters = 48
 config = model_config("../miqa-seg/data_evaluation/PatientLabelProcessed.csv")
@@ -206,7 +207,6 @@ for patient in patients:
 
 		# ct_stack = ct_stack[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
 		# Kidney = a[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
-		orig_size = (128, 128, 100)
 		ct_stack = zoom(ct_stack, (orig_size[0] / ct_stack.shape[0], orig_size[1] / ct_stack.shape[1], orig_size[2] / ct_stack.shape[2]))
 		PTV = zoom(PTV, (orig_size[0] / PTV.shape[0], orig_size[1] / PTV.shape[1], orig_size[2] / PTV.shape[2]), order=0)
 		doseArrayResampled = zoom(doseArrayResampled, (orig_size[0] / doseArrayResampled.shape[0], orig_size[1] / doseArrayResampled.shape[1], orig_size[2] / doseArrayResampled.shape[2]))
