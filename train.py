@@ -53,7 +53,7 @@ gen_test = DataGenerator(base_path + "testing/",
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 # (Decoder type / Number of control points / Dose resolution / Image shape / Number of slices / Leaf resolution)
-decoders = [("monaco", 24, 64, (256, 256), 128, 32)]
+decoders = [("monaco", 12, 64, (256, 256), 128, 32)]
 model = build_model(batch_size, decoders)
 model.compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
@@ -73,6 +73,7 @@ for epoch in range(n_epochs):
         for i in range(len(gen_train)):
             x, y = gen_train[i]
             loss = model.train_on_batch(x, y)
+            print(f"Batch {i + 1}/{len(gen_train)} - loss: {loss}")
             training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     experiment.log_metric("loss", np.mean(training_loss), step=epoch)
