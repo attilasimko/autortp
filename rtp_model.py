@@ -127,7 +127,7 @@ class MonacoDecoder():
                     current_rays = tf.gather(current_leafs, ray_matrix)
                     current_rays = tf.expand_dims(tf.expand_dims(current_rays, 0), 3)
                     ray_slices.append(current_rays[0, ..., 0])
-                ray_stack = UpSampling2D((self.img_shape[0] // self.dose_resolution, self.img_shape[1] // self.leaf_length))(tf.expand_dims(tf.stack(ray_slices, -1), 0))[0, ...]
+                ray_stack = UpSampling2D((self.img_shape[0] // self.dose_resolution, self.img_shape[1] // self.leaf_length), interpolation='bilinear')(tf.expand_dims(tf.stack(ray_slices, -1), 0))[0, ...]
                 absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx]), 0)
                 batch_rays.append(absorbed_rays)
             ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
