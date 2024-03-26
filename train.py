@@ -73,7 +73,6 @@ for epoch in range(n_epochs):
         for i in range(len(gen_train)):
             x, y = gen_train[i]
             loss = model.train_on_batch(x, y)
-            print(f"Batch {i + 1}/{len(gen_train)} - loss: {loss}")
             training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     experiment.log_metric("loss", np.mean(training_loss), step=epoch)

@@ -30,6 +30,8 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.config = model_config("../miqa-seg/data_evaluation/PatientLabelProcessed.csv")
+        self.clean_iter = 0
+        self.clean_thr = 100
 
         if data_path is None:
             raise ValueError('The data path is not defined.')
@@ -67,6 +69,12 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
             
         # Generate data
         i, o = self.__data_generation(self.temp_ID)
+        self.clean_iter += 1
+
+        if self.clean_iter >= self.clean_thr:
+            gc.collect()
+            K.clear_session()
+            self.clean_iter = 0
         
         return i, o
 
