@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from rtp_data import generate_data
 from rtp_model import *
 from matplotlib import animation
 import matplotlib
@@ -10,11 +9,11 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, model, seg_model, decoder_info, structure_weights, cp_idx, num_cp, experiment, epoch):
+    def __init__(self, gen, model, decoder_info, structure_weights, cp_idx, experiment, epoch):
         matplotlib.use('agg')
-        save_path = f"imgs/{cp_idx}.gif"
-        x, y = generate_data(seg_model, 1, 0)
-        _, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
+        x, y = gen[0]
+        name, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
+        save_path = f"imgs/name_{cp_idx}.gif"
         decoder = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
         monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{cp_idx}").output, model.get_layer(f"mus").output, model.layers[-1].output])
 
@@ -59,17 +58,15 @@ class save_gif():
     def animate(self, i):
         dose_slice = self.delivered_dose[:, :, i]
         gt_slice = self.ground_truth[:, :, i]
-        ray_slice = self.ray_matrix[:, :, i]
         ct_slice = self.ct[:, :, i]
         weight_slice = self.weights[:, :, i]
 
-        self.im2.set_array(ray_slice)
         self.im3.set_array(gt_slice)
         self.im4.set_array(dose_slice)
         self.im3ct.set_array(ct_slice)
         self.im4ct.set_array(ct_slice)
         self.imw.set_array(weight_slice)
-        return [self.im2, self.im3, self.im4, self.im3ct, self.im4ct, self.imw]
+        return [self.im3, self.im4, self.im3ct, self.im4ct, self.imw]
 
     def init(self):
         mono_font = {'fontname':'monospace'}
@@ -78,27 +75,18 @@ class save_gif():
         vmax = np.max(self.ground_truth)
         dose_slice = self.delivered_dose[:, :, 0]
         gt_slice = self.ground_truth[:, :, 0]
-        ray_slice = self.ray_matrix[:, :, 0]
         ct_slice = self.ct[:, :, 0]
         weight_slice = self.weights[:, :, 0]
         
-        plt.subplot(221)
+        plt.subplot(233)
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,
                         labelbottom=False)
         plt.imshow(self.mlc, cmap="gray", vmin=0, vmax=1, interpolation="none")
 
-
-        plt.subplot(222)
-        plt.tick_params(left=False,
-                        bottom=False,
-                        labelleft=False,
-                        labelbottom=False)
-        self.im2 = plt.imshow(ray_slice, cmap="gray", vmin=0, vmax=np.max(self.ray_matrix), interpolation="none")
-
-
         plt.subplot(234)
+        plt.title('Weights')
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,
@@ -106,6 +94,7 @@ class save_gif():
         self.imw = plt.imshow(weight_slice, vmin=1, vmax=np.max(self.structure_weights), cmap="hot", interpolation='bilinear')
 
         plt.subplot(235)
+        plt.title('True dose')
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,
@@ -113,8 +102,8 @@ class save_gif():
         self.im3ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
         self.im3 = plt.imshow(gt_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
-
         plt.subplot(236)
+        plt.title('Monaco - predicted dose')
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,

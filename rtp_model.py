@@ -23,10 +23,10 @@ class mu_reg(keras.regularizers.Regularizer):
     def __call__(self, weights):
         return self.alpha * tf.math.reduce_mean(tf.math.abs(weights))
 
-def build_model(batch_size, img_shape, decoder_info):
-    inp = Input(shape=img_shape[1:], batch_size=batch_size)
+def build_model(batch_size, decoders):
+    inp = Input(shape=(256, 256, 128, 2), batch_size=batch_size)
 
-    x = Conv3D(4, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(inp[..., 0:2])
+    x = Conv3D(4, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(inp)
     x = MaxPooling3D((4, 4, 4))(x)
     x = Conv3D(8, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((4, 4, 4))(x)
@@ -37,14 +37,16 @@ def build_model(batch_size, img_shape, decoder_info):
     x = x[:, :, :, 0, :]
     latent_space = x
 
-    if decoder_info[0] == "monaco":
-        _, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
-        monaco = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
-        dose = monaco.predict_dose(latent_space, inp)
-    else:
-        raise ValueError("Decoder not implemented")
+    dose = []
+    for decoder_info in decoders:
+        if decoder_info[0] == "monaco":
+            _, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
+            monaco = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
+            dose.append(monaco.predict_dose(latent_space, inp))
+        else:
+            raise ValueError("Decoder not implemented")
 
-    return Model(inp, tf.concat([dose, inp[..., 1:]], 4))
+    return Model(inp, tf.concat(dose, 4))
 
 class MonacoDecoder():
     def __init__(self, num_cp, dose_shape, img_shape, num_slices, leaf_length):

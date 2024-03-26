@@ -2,19 +2,26 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import pydicom
 import numpy as np
+import sys
 import cv2
 import nibabel as nib
 from skimage import draw
 import matplotlib.pyplot as plt
+sys.path.append("../miqa-seg")
+from utils import model_config
+from model import build_unet
+from tensorflow.keras.models import Model
+from scipy.ndimage.interpolation import shift
+import tensorflow as tf
 import SimpleITK as sitk
 from rt_utils import RTStructBuilder
-import sys
+from pathlib import Path
 from scipy.ndimage import zoom
 sys.path.insert(1, os.path.abspath('.'))
 import rtp_utils
 
-data_path = "/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/RAW/kits19/original/"
-base_path = "/mnt/4a39cb60-7f1f-4651-81cb-029245d590eb/ARTP/"
+data_path = "/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/RAW/ARTP/"
+base_path = "/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/DSets/ARTP/"
 
 # Program to count islands in boolean 2D matrix
 class Graph:
@@ -105,36 +112,111 @@ def get_data(path):
 
 roi_names = []
 patients = os.listdir(os.path.join(data_path))
+patients = patients[:10]
 
-for patient in patients[:10]:
-    try:
-        ct_stack = get_data(data_path + patient + "/imaging.nii.gz")
-        # ct_stack = np.interp(ct_stack, (-1, 1), (0, 255))
+num_filters = 48
+config = model_config("../miqa-seg/data_evaluation/PatientLabelProcessed.csv")
+seg_path = "weights/crimson_cliff_1296_hero.h5"
+seg_model = build_unet(len(config.labels), 1, num_filters, 0.0, config.epsilon)
+seg_model.load_weights(seg_path, skip_mismatch=True, by_name=True)
+seg_model.compile(loss="mse")
+seg_model.trainable = False
+for l in seg_model.layers:
+    l.trainable = False
 
-        segmentation = get_data(data_path + patient + "/segmentation.nii.gz").astype(np.uint8)
-        kidney = segmentation == 1
-        # tumor = segmentation == 2
+for patient in patients:
+	try:
+		if (patients.index(patient) / len(patients) < 0.7):
+			datatype = "training"
+		elif (patients.index(patient) / len(patients) < 0.85):
+			datatype = "validating"
+		else:
+			datatype = "testing"
+
+		STACK = []
+		for scan_file in os.listdir(os.path.join(data_path, patient)):
+			if scan_file.__contains__("RTDOSE"):
+					rtdose_path = os.path.join(data_path, patient, scan_file)
+			if scan_file.__contains__("RTSTRUCT"):
+					rtstruct_path = os.path.join(data_path, patient, scan_file)
+			if scan_file.startswith("CT"):
+					image_path = os.path.join(data_path, patient)
+					data = pydicom.dcmread(os.path.join(data_path, patient, scan_file))
+					STACK.append(data)
+
 		
-        g = Graph(kidney)
-        labels, count = g.countIslands()
+		doseArray, ct_stack     = [], []
+		doseSpacing, ctSpacing = [], []
+		doseImagePositionPatient, ctImagePositionPatientMin, ctImagePositionPatientMax = [], [], []
+
+		dsCTs = []
+		for pathCTDicom in Path(image_path).iterdir(): 
+			if (pathCTDicom.name.startswith("CT")):
+				dsCTs.append(pydicom.dcmread(pathCTDicom))
+
+		ctSpacing = [float(each) for each in dsCTs[0].PixelSpacing] + [float(dsCTs[0].SliceThickness)]
+		dsCTs.sort(key=lambda x: x.InstanceNumber)
+		ctImagePositionPatientMin = [float(each) for each in dsCTs[0].ImagePositionPatient]
+		ctImagePositionPatientMax = [float(each) for each in dsCTs[-1].ImagePositionPatient]
+		for dsCT in dsCTs:
+				ct_stack.append(dsCT.pixel_array * dsCT.RescaleSlope + dsCT.RescaleIntercept)
+		ct_stack = np.array(ct_stack[::-1])
+		ct_stack = np.clip(ct_stack, -1000, 1000)
+		ct_stack /= 1000
+
+		RTSTRUCT = RTStructBuilder.create_from(
+		dicom_series_path=image_path,
+		rt_struct_path=rtstruct_path
+		)
 		
-        Kidney = np.array(labels == 1, dtype=float)
-        mass = np.array((Kidney * np.mgrid[0:Kidney.shape[0], 0:Kidney.shape[1], 0:Kidney.shape[2]]).sum(1).sum(1).sum(1)/Kidney.sum(), dtype=np.int16)
-	
-        offset = [(256 - mass[0]) * 2, (256 - mass[1]) * 2, 0]
-        pad = ((offset[0] if offset[0] > 0 else 0, -offset[0] if offset[0] < 0 else 0), (offset[1] if offset[1] > 0 else 0, -offset[1] if offset[1] < 0 else 0), (0, 0))
-        Kidney = np.pad(Kidney, pad, mode='constant', constant_values=0)
-        ct_stack = np.pad(ct_stack, pad, mode='constant', constant_values=-1000)
-		
-        # ct_stack = ct_stack[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
-        # Kidney = a[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
-        orig_size = (256, 256, 128)
-        ct_stack = zoom(ct_stack, (orig_size[0] / ct_stack.shape[0], orig_size[1] / ct_stack.shape[1], orig_size[2] / ct_stack.shape[2]))
-        Kidney = zoom(Kidney, (orig_size[0] / Kidney.shape[0], orig_size[1] / Kidney.shape[1], orig_size[2] / Kidney.shape[2])) > 0.2
-        
-        np.savez_compressed("data/kits19_" + patient,
-                            CT = np.array(np.interp(ct_stack, (-1000, 1000), (0, 255)), dtype=np.int16),
-                            Kidney = np.array(Kidney, dtype=bool)
-        )
-    except Exception as e:
-        print("Error in patient: ", patient + " - " + str(e))
+		ptvName = [structName for structName in RTSTRUCT.get_roi_names() if "PTV" in structName][0]
+		PTV = RTSTRUCT.get_roi_mask_by_name(ptvName)
+
+		dsDose      = pydicom.dcmread(rtdose_path)
+		doseArray   = dsDose.pixel_array * dsDose.DoseGridScaling
+		doseSpacing = [float(each) for each in dsDose.PixelSpacing] + [float(dsDose.SliceThickness)]
+		assert doseArray.shape[0] == float(dsDose.NumberOfFrames)
+		doseImagePositionPatient = [float(each) for each in dsDose.ImagePositionPatient]
+
+		doseImage = sitk.GetImageFromArray(doseArray)
+		doseImage.SetSpacing(doseSpacing)
+		resampler = sitk.ResampleImageFilter()
+		resampler.SetOutputSpacing(ctSpacing)
+		resampler.SetSize(ct_stack.shape[::-1]) # SimpleITK convention: [H,W,Slices], numpy convention: [Slices,H,W]
+		resampled_image = resampler.Execute(doseImage)
+		doseArrayResampled = sitk.GetArrayFromImage(resampled_image)
+
+		dx, dy, dz = ((np.array(doseImagePositionPatient) - np.array(ctImagePositionPatientMax)) / np.array(ctSpacing)).astype(int)
+		doseArrayResampled = shift(doseArrayResampled, (dz, dy, dx))
+
+		ct_stack = np.moveaxis(ct_stack, 0, 2)
+		doseArrayResampled = np.moveaxis(doseArrayResampled, 0, 2)
+		Segmentations = np.ones_like(ct_stack, dtype=np.int16)
+		for i in range(ct_stack.shape[2]):
+			Segmentations[..., i] = np.argmax(seg_model.predict_on_batch(np.expand_dims(ct_stack[..., i:i+1], 0)), -1)
+
+		mass = np.array((PTV * np.mgrid[0:PTV.shape[0], 0:PTV.shape[1], 0:PTV.shape[2]]).sum(1).sum(1).sum(1)/PTV.sum(), dtype=np.int16)
+
+		offset = [(256 - mass[0]) * 2, (256 - mass[1]) * 2, 0]
+		pad = ((offset[0] if offset[0] > 0 else 0, -offset[0] if offset[0] < 0 else 0), (offset[1] if offset[1] > 0 else 0, -offset[1] if offset[1] < 0 else 0), (0, 0))
+		# PTV = np.pad(PTV, pad, mode='constant', constant_values=0)
+		# ct_stack = np.pad(ct_stack, pad, mode='constant', constant_values=-1000)
+		# doseArrayResampled = np.pad(doseArrayResampled, pad, mode='constant', constant_values=0)
+		# Segmentations = np.pad(Segmentations, pad, mode='constant', constant_values=0) 
+
+		# ct_stack = ct_stack[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
+		# Kidney = a[mass[0]-64:mass[0]+64, mass[1]-64:mass[1]+64, mass[2]-64:mass[2]+64]
+		orig_size = (256, 256, 128)
+		ct_stack = zoom(ct_stack, (orig_size[0] / ct_stack.shape[0], orig_size[1] / ct_stack.shape[1], orig_size[2] / ct_stack.shape[2]))
+		PTV = zoom(PTV, (orig_size[0] / PTV.shape[0], orig_size[1] / PTV.shape[1], orig_size[2] / PTV.shape[2]), order=0)
+		doseArrayResampled = zoom(doseArrayResampled, (orig_size[0] / doseArrayResampled.shape[0], orig_size[1] / doseArrayResampled.shape[1], orig_size[2] / doseArrayResampled.shape[2]))
+		Segmentations = zoom(Segmentations, (orig_size[0] / Segmentations.shape[0], orig_size[1] / Segmentations.shape[1], orig_size[2] / Segmentations.shape[2]), order=0)
+
+		np.savez_compressed("/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/DSets/ARTP/" + datatype + "/" + patient,
+												CT = np.array(np.interp(ct_stack, (-1, 1), (0, 255)), dtype=np.int16),
+												PTV = np.array(PTV, dtype=bool),
+												Dose = np.array(doseArrayResampled, dtype=np.float32),
+												Aux = np.array(Segmentations, dtype=np.int16)
+		)
+	except Exception as e:
+			print("Error in patient: ", patient + " - " + str(e))
