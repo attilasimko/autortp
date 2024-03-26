@@ -109,7 +109,7 @@ class MonacoDecoder():
         
         for batch_idx in range(len(absorption_matrices)):
             for cp_idx in range(self.num_cp):
-                absorption_matrices[batch_idx][:, :, :, cp_idx] *= mu_total[batch_idx, cp_idx] + self.mu_epsilon
+                absorption_matrices[batch_idx] = tf.multiply(absorption_matrices[batch_idx], mu_total[batch_idx, :][None, None, None, :]) + self.mu_epsilon
 
         ray_strengths = self.get_rays(absorption_matrices, leaf_total)
         
