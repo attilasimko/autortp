@@ -108,8 +108,7 @@ class MonacoDecoder():
         mu_total = Dense(self.num_cp, activation='relu', kernel_initializer="he_normal", name="mus")(mu_total) # , activity_regularizer=mu_reg(mu_alpha)
         
         for batch_idx in range(len(absorption_matrices)):
-            for cp_idx in range(self.num_cp):
-                absorption_matrices[batch_idx] = tf.multiply(absorption_matrices[batch_idx], mu_total[batch_idx, :][None, None, None, :]) + self.mu_epsilon
+            absorption_matrices[batch_idx] = tf.multiply(absorption_matrices[batch_idx], mu_total[batch_idx, :][None, None, None, :]) + self.mu_epsilon
 
         ray_strengths = self.get_rays(absorption_matrices, leaf_total)
         
