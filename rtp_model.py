@@ -148,7 +148,7 @@ class MonacoDecoder():
                 array = tf.where(tf.greater(ct[batch, ...], -0.8), array, 0)
                 array /= tf.reduce_max(array)
                 rotated_arrays.append(array)
-            const_array = tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.int32)
+            const_array = tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32)
             batches.append(const_array)
         
         return batches
@@ -159,6 +159,6 @@ class MonacoDecoder():
 
         for angle_idx in range(self.num_cp):
             array = np.expand_dims(rotate(indeces, - angle_idx * 360 / self.num_cp, reshape=False, order=0, mode='nearest'), 0)
-            rotated_arrays.append(array)
+            rotated_arrays.append(tf.cast(array, dtype=tf.int32))
 
         return [tf.constant(x) for x in rotated_arrays]
