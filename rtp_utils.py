@@ -72,7 +72,7 @@ class save_gif():
         weight_slice = self.weights[:, :, 0]
         
         plt.subplot(131)
-        plt.title('Weights')
+        plt.title('weights')
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,
@@ -80,7 +80,7 @@ class save_gif():
         self.imw = plt.imshow(weight_slice, vmin=1, vmax=np.max(self.structure_weights), cmap="hot", interpolation='bilinear')
 
         plt.subplot(132)
-        plt.title('True dose')
+        plt.title('true_dose')
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,
@@ -89,7 +89,7 @@ class save_gif():
         self.im3 = plt.imshow(gt_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
         plt.subplot(133)
-        plt.title('Monaco - predicted dose')
+        plt.title('pred_dose')
         plt.tick_params(left=False,
                         bottom=False,
                         labelleft=False,

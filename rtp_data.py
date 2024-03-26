@@ -84,7 +84,6 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
         if (len(file_path_list) != self.batch_size):
             raise ValueError("Batch size is not equal to the number of files in the list")
 
-        dose_scale = 2.4
         for file_path in file_path_list:
             with np.load(self.data_path + file_path) as file:
                 ct = np.array(file['CT'], dtype=float)
