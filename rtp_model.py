@@ -67,11 +67,11 @@ class MonacoDecoder():
 
         x = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_vector)
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
-        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
+        img_upsampling = 5 # tf.minimum(4, self.num_slices // x.shape[2])
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
-        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
+        img_upsampling = 5 # tf.minimum(4, self.num_slices // x.shape[2])
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
