@@ -9,18 +9,18 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, gen, model, decoder_info, structure_weights, cp_idx, experiment, epoch):
+    def __init__(self, gen, model, decoder_info, structure_weights, experiment, epoch):
         matplotlib.use('agg')
         x, y = gen[0]
         name, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
-        save_path = f"imgs/name_{cp_idx}.gif"
+        save_path = f"imgs/{name}.gif"
         decoder = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
-        monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"ray_{cp_idx}").output, model.get_layer(f"mus").output, model.layers[-1].output])
+        monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"mus").output, model.layers[-1].output])
 
-        mlcs, _, mus, dose = monaco_model.predict_on_batch(x)     
+        mlcs, mus, dose = monaco_model.predict_on_batch(x)     
         mlcs = tf.where(mlcs > 0.2, 1.0, 0.0)
-        absorption_matrices = decoder.get_absorption_matrices(x[..., 0:1])   
-        ray_strength = decoder.get_rays(absorption_matrices, mlcs, mus)
+        # absorption_matrices = decoder.get_absorption_matrices(x[..., 0:1])   
+        # ray_strength = decoder.get_rays(absorption_matrices, mlcs, mus)
         self.delivered_dose = dose[0, ..., 0]
         self.ground_truth = y[0, ..., 0]
         self.ct = x[0, ..., 0]
@@ -28,20 +28,13 @@ class save_gif():
         self.structure_weights = structure_weights
         self.weights = np.ones_like(self.ct)
         for i in range(len(structure_weights)):
-            self.weights = np.where(x[0, ..., i+1] > 0.5, structure_weights[i], self.weights)
+            self.weights = np.where(y[0, ..., i+1] > 0.5, structure_weights[i], self.weights)
 
-        # self.mus = mus
         self.experiment = experiment
         self.epoch = epoch
         self.save_path = save_path
-        self.mlc = mlcs[0, ..., cp_idx]
-        self.ray_matrix = ray_strength[cp_idx].numpy()[0, ...]
-
-        # print("Lower leafs: ", leafs[0, 0, :])
-        # print("Upper leafs: ", leafs[0, 1, :])
-        # self.ray_matrix = np.ones_like(ray_matrix)
-        # for i in range(ray_matrix.shape[2]):
-        #     self.ray_matrix[:, :, i] = tf.gather(self.mlc[i, :], tf.cast(ray_matrix[..., i], dtype=tf.int32))
+        # self.mlc = mlcs[0, ..., cp_idx]
+        # self.ray_matrix = ray_strength[cp_idx].numpy()[0, ...]
 
         self.fig, axx = plt.subplots(2, 2)
         self.fps = 12
@@ -78,14 +71,7 @@ class save_gif():
         ct_slice = self.ct[:, :, 0]
         weight_slice = self.weights[:, :, 0]
         
-        plt.subplot(233)
-        plt.tick_params(left=False,
-                        bottom=False,
-                        labelleft=False,
-                        labelbottom=False)
-        plt.imshow(self.mlc, cmap="gray", vmin=0, vmax=1, interpolation="none")
-
-        plt.subplot(234)
+        plt.subplot(131)
         plt.title('Weights')
         plt.tick_params(left=False,
                         bottom=False,
@@ -93,7 +79,7 @@ class save_gif():
                         labelbottom=False)
         self.imw = plt.imshow(weight_slice, vmin=1, vmax=np.max(self.structure_weights), cmap="hot", interpolation='bilinear')
 
-        plt.subplot(235)
+        plt.subplot(132)
         plt.title('True dose')
         plt.tick_params(left=False,
                         bottom=False,
@@ -102,7 +88,7 @@ class save_gif():
         self.im3ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
         self.im3 = plt.imshow(gt_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
-        plt.subplot(236)
+        plt.subplot(133)
         plt.title('Monaco - predicted dose')
         plt.tick_params(left=False,
                         bottom=False,

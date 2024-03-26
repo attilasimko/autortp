@@ -32,7 +32,7 @@ epoch_length = 10
 batch_size = 1
 learning_rate = 0.0001
 structs = ["Bladder", "FemoralHead_L", "FemoralHead_R", "Rectum"]
-weights = [10.0, 3.0, 8.0, 8.0, 3.0]
+weights = [3.0, 2.0, 2.0, 2.0, 2.0]
 
 # Custom data generator for efficiently loading the training data (stored as .npz files under base_path+"training/")
 gen_train = DataGenerator(base_path + "training/",
@@ -77,5 +77,4 @@ for epoch in range(n_epochs):
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
     experiment.log_metric("loss", np.mean(training_loss), step=epoch)
     for decoder in decoders:
-        for i in range(0, decoder[1], 4):
-            save_gif(gen_val, model, decoder, weights, i, experiment, epoch)
+        save_gif(gen_val, model, decoder, weights, experiment, epoch)
