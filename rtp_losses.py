@@ -7,10 +7,9 @@ def rtp_loss(weights):
         
         losses = []
         for dose_idx in range(y_pred.shape[4]):
-            print(y_true.shape, y_pred.shape)
-            loss = mean_absolute_error(y_true[..., 0], y_pred[..., dose_idx])
+            loss = mean_absolute_error(y_true[..., 0:1], y_pred[..., dose_idx:dose_idx+1])
             for i in range(len(weights)):
-                loss = tf.where(tf.greater(y_true[..., i], 0.5), loss * weights[i], loss)
+                loss = tf.where(tf.greater(y_true[..., i:i+1], 0.5), loss * weights[i], loss)
             losses.append(loss)
         return losses
     return loss_fn
