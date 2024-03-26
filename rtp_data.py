@@ -97,8 +97,8 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                     masks.append(aux == self.config.maps[struct])
                 masks = np.stack(masks, -1)
 
-                dose = np.array(file['Dose'], dtype=float)
+                dose = np.expand_dims(np.array(file['Dose'], dtype=float), 3)
                 
             inputs.append(np.concatenate([ct, masks[..., 0:1]], -1))
-            outputs.append(np.concatenate([dose_scale*masks[..., 0:1], masks], -1))
+            outputs.append(np.concatenate([dose, masks], -1))
         return np.stack(inputs, 0), np.stack(outputs, 0)
