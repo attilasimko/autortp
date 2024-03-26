@@ -64,7 +64,6 @@ class MonacoDecoder():
         ct = inp[..., 0:1]
         structs = inp[..., 1:]
 
-        absorption_matrices = self.get_absorption_matrices(ct[..., 0:1])
 
         x = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_vector)
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
@@ -107,8 +106,7 @@ class MonacoDecoder():
         mu_total = Dense(2 * self.num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
         mu_total = Dense(self.num_cp, activation='relu', kernel_initializer="he_normal", name="mus")(mu_total) # , activity_regularizer=mu_reg(mu_alpha)
         
-        for batch_idx in range(len(absorption_matrices)):
-            absorption_matrices[batch_idx] = tf.multiply(absorption_matrices[batch_idx], mu_total[batch_idx, :][None, None, None, :]) + self.mu_epsilon
+        absorption_matrices = self.get_absorption_matrices(ct[..., 0:1], mu_total)
 
         ray_strengths = self.get_rays(absorption_matrices, leaf_total)
         
@@ -126,13 +124,13 @@ class MonacoDecoder():
                     current_rays = tf.gather(current_leafs, ray_matrix)
                     current_rays = tf.expand_dims(tf.expand_dims(current_rays, 0), 3)
                     ray_slices.append(current_rays[0, ..., 0])
-                ray_stack = UpSampling2D((self.img_shape[0] // self.dose_resolution, self.img_shape[1] // self.leaf_length), interpolation='bilinear')(tf.expand_dims(tf.stack(ray_slices, -1), 0))[0, ...]
+                ray_stack = UpSampling2D((self.img_shape[0] // self.dose_resolution, self.img_shape[1] // self.leaf_length), interpolation='nearest')(tf.expand_dims(tf.stack(ray_slices, -1), 0))[0, ...]
                 absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx]), 0)
                 batch_rays.append(absorbed_rays)
             ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
         return ray_strengths
 
-    def get_absorption_matrices(self, ct):
+    def get_absorption_matrices(self, ct, mu_total):
         batches = []
         absorption = tf.stop_gradient(tf.identity(tf.ones(ct.shape, dtype=tf.float32)))
         for batch in range(ct.shape[0]):
@@ -148,7 +146,7 @@ class MonacoDecoder():
                 array /= tf.reduce_max(array)
                 rotated_arrays.append(array)
             const_array = tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32)
-            batches.append(const_array)
+            batches.append(tf.multiply(const_array, mu_total[batch, :][None, None, None, :]) + self.mu_epsilon)
         
         return batches
 
