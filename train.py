@@ -52,8 +52,8 @@ gen_test = DataGenerator(base_path + "testing/",
 # Comet_ml
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
-# (Decoder type / Number of control points / Dose shape / Image shape / Number of slices / Leaf length)
-decoders = [("monaco", 24, (64, 64), (256, 256), 128, 32)]
+# (Decoder type / Number of control points / Dose resolution / Image shape / Number of slices / Leaf resolution)
+decoders = [("monaco", 24, 256, (256, 256), 128, 256)]
 model = build_model(batch_size, decoders)
 model.compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")

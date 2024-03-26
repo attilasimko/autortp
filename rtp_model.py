@@ -49,9 +49,9 @@ def build_model(batch_size, decoders):
     return Model(inp, tf.concat(dose, 4))
 
 class MonacoDecoder():
-    def __init__(self, num_cp, dose_shape, img_shape, num_slices, leaf_length):
+    def __init__(self, num_cp, dose_resolution, img_shape, num_slices, leaf_length):
         self.img_shape = img_shape
-        self.dose_shape = dose_shape
+        self.dose_resolution = dose_resolution
         self.num_slices = num_slices
         self.leaf_length = leaf_length
         self.num_cp = num_cp
@@ -67,20 +67,20 @@ class MonacoDecoder():
         absorption_matrices = self.get_absorption_matrices(ct[..., 0:1])
 
         x = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer="he_normal")(latent_vector)
-        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
+        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
+        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
+        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(32, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
-        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         leaf_upsampling = tf.minimum(4, self.leaf_length // x.shape[1])
+        img_upsampling = tf.minimum(4, self.num_slices // x.shape[2])
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
         leaf_total = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
@@ -117,14 +117,13 @@ class MonacoDecoder():
             batch_rays = []
             for batch_idx in range(leafs.shape[0]):
                 ray_slices = []
-                for slice_idx in range(leafs.shape[2]):
+                for slice_idx in range(self.num_slices):
                     current_leafs = leafs[batch_idx, ..., slice_idx, cp_idx]
                     ray_matrix = tf.cast(self.ray_matrices[cp_idx][batch_idx, ...], dtype=tf.int32)
                     current_rays = tf.gather(current_leafs, ray_matrix)
                     current_rays = tf.expand_dims(tf.expand_dims(current_rays, 0), 3)
-                    current_rays = UpSampling2D((1, self.dose_shape[1] // leafs.shape[1]))(current_rays)
                     ray_slices.append(current_rays[0, ..., 0])
-                ray_stack = UpSampling2D((self.img_shape[0] // self.dose_shape[0]))(tf.expand_dims(tf.stack(ray_slices, -1), 0))[0, ...]
+                ray_stack = UpSampling2D((self.img_shape[0] // self.dose_resolution, self.img_shape[1] // self.leaf_length))(tf.expand_dims(tf.stack(ray_slices, -1), 0))[0, ...]
                 absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx]), 0)
                 batch_rays.append(tf.multiply(absorbed_rays, mus[batch_idx, cp_idx] + self.mu_epsilon))
             ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
@@ -152,7 +151,7 @@ class MonacoDecoder():
 
     def get_monaco_projections(self):
         rotated_arrays = []
-        indeces, _ = np.meshgrid(np.arange(self.leaf_length), np.arange(self.dose_shape[0]))
+        indeces, _ = np.meshgrid(np.arange(self.leaf_length), np.arange(self.dose_resolution))
 
         for angle_idx in range(self.num_cp):
             array = np.expand_dims(rotate(indeces, - angle_idx * 360 / self.num_cp, reshape=False, order=0, mode='nearest'), 0)
