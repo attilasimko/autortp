@@ -156,6 +156,6 @@ class MonacoDecoder():
 
         for angle_idx in range(self.num_cp):
             array = np.expand_dims(rotate(indeces, - angle_idx * 360 / self.num_cp, reshape=False, order=0, mode='nearest'), 0)
-            rotated_arrays.append(tf.cast(array, dtype=tf.int32))
+            rotated_arrays.append(array)
 
-        return [tf.constant(x) for x in rotated_arrays]
+        return [tf.constant(x, dtype=tf.int32) for x in rotated_arrays]
