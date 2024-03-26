@@ -107,11 +107,15 @@ class MonacoDecoder():
         mu_total = Dense(2 * self.num_cp, activation='relu', kernel_initializer="he_normal")(mu_total)
         mu_total = Dense(self.num_cp, activation='relu', kernel_initializer="he_normal", name="mus")(mu_total) # , activity_regularizer=mu_reg(mu_alpha)
         
-        ray_strengths = self.get_rays(absorption_matrices, leaf_total, mu_total)
+        for batch_idx in range(len(absorption_matrices)):
+            for cp_idx in range(self.num_cp):
+                absorption_matrices[batch_idx][:, :, :, cp_idx] *= mu_total[batch_idx, cp_idx] + self.mu_epsilon
+
+        ray_strengths = self.get_rays(absorption_matrices, leaf_total)
         
         return tf.expand_dims(tf.reduce_sum(ray_strengths, 0), -1)
 
-    def get_rays(self, absorption_matrices, leafs, mus):
+    def get_rays(self, absorption_matrices, leafs):
         ray_strengths = []
         for cp_idx in range(len(self.ray_matrices)):
             batch_rays = []
@@ -119,13 +123,13 @@ class MonacoDecoder():
                 ray_slices = []
                 for slice_idx in range(self.num_slices):
                     current_leafs = leafs[batch_idx, ..., slice_idx, cp_idx]
-                    ray_matrix = tf.cast(self.ray_matrices[cp_idx][batch_idx, ...], dtype=tf.int32)
+                    ray_matrix = self.ray_matrices[cp_idx][batch_idx, ...]
                     current_rays = tf.gather(current_leafs, ray_matrix)
                     current_rays = tf.expand_dims(tf.expand_dims(current_rays, 0), 3)
                     ray_slices.append(current_rays[0, ..., 0])
                 ray_stack = UpSampling2D((self.img_shape[0] // self.dose_resolution, self.img_shape[1] // self.leaf_length))(tf.expand_dims(tf.stack(ray_slices, -1), 0))[0, ...]
                 absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx]), 0)
-                batch_rays.append(tf.multiply(absorbed_rays, mus[batch_idx, cp_idx] + self.mu_epsilon))
+                batch_rays.append(absorbed_rays)
             ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
         return ray_strengths
 
@@ -144,7 +148,7 @@ class MonacoDecoder():
                 array = tf.where(tf.greater(ct[batch, ...], -0.8), array, 0)
                 array /= tf.reduce_max(array)
                 rotated_arrays.append(array)
-            const_array = tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32)
+            const_array = tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.int32)
             batches.append(const_array)
         
         return batches
