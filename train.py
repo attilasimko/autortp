@@ -53,7 +53,7 @@ gen_test = DataGenerator(base_path + "testing/",
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 # (Decoder type / Number of control points / Dose resolution / Image shape / Number of slices / Leaf resolution)
-decoders = [("monaco", 12, 64, (128, 128), 100, 32)]
+decoders = [("monaco", 48, 64, (128, 128), 100, 128)]
 model = build_model(batch_size, decoders)
 model.compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
 print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
