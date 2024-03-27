@@ -17,7 +17,6 @@ class save_gif():
         self.num_cols = len(models) + 2
         self.fig, axx = plt.subplots(1, self.num_cols)
         self.fps = 12
-        self.num_frames = self.ct.shape[2]
 
         x, y = gen[0]
 
@@ -29,6 +28,7 @@ class save_gif():
         self.weights = np.ones_like(self.ct)
         for i in range(len(structure_weights)):
             self.weights = np.where(y[0, ..., i+1] > 0.5, structure_weights[i], self.weights)
+        self.num_frames = self.ct.shape[2]
 
         self.delivered_dose = []
         for i in range(len(models)):
