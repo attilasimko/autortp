@@ -15,7 +15,7 @@ class save_gif():
         self.epoch = epoch
         self.save_path = f"imgs/results.gif"
         self.num_cols = len(models) + 2
-        self.fig, axx = plt.subplots(1, self.num_cols)
+        self.fig, axx = plt.subplots(1, self.num_cols, figsize=(self.num_cols*4, 4))
         self.fps = 12
 
         x, y = gen[0]

@@ -89,7 +89,7 @@ for epoch in range(n_epochs):
         x, y = gen_val[idx]
         for i in range(len(decoders)):
             loss = models[i].test_on_batch(x, y)
-            val_loss.append(loss)
+            val_loss[i].append(loss)
 
     for i in range(len(decoders)):
         print(f'{decoders[i][0]} - val. loss: {np.mean(val_loss[i])}')
