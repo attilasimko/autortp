@@ -28,7 +28,7 @@ else:
     base_path = '/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/DSets/ARTP/'
 
 n_epochs = 50
-epoch_length = 500
+epoch_length = 20
 batch_size = 1
 learning_rate = 0.0001
 structs = ["Bladder", "FemoralHead_L", "FemoralHead_R", "Rectum"]
@@ -82,6 +82,6 @@ for epoch in range(n_epochs):
         loss = model.test_on_batch(x, y)
         print(f'Validation loss: {loss}')
         experiment.log_metric("val_loss", loss, step=epoch)
-        
+
     for decoder in decoders:
         save_gif(gen_val, model, decoder, weights, experiment, epoch)
