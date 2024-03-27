@@ -102,14 +102,14 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
                 ct = np.expand_dims(np.interp(ct, (ct.min(), ct.max()), (-1.0, 1.0)), 3)
 
                 ptv = np.array(file['PTV'], dtype=float)
-                ptv = zoom(ptv, (self.img_size[0] / ptv.shape[0], self.img_size[1] / ptv.shape[1], self.img_size[2] / ptv.shape[2])) > 0.0
+                ptv = zoom(ptv, (self.img_size[0] / ptv.shape[0], self.img_size[1] / ptv.shape[1], self.img_size[2] / ptv.shape[2])) > 0.5
 
                 masks = []
                 masks.append(ptv)
                 aux = np.array(file['Aux'], dtype=int)
                 for struct in self.structs:
                     mask = aux == self.config.maps[struct]
-                    mask = zoom(mask, (self.img_size[0] / mask.shape[0], self.img_size[1] / mask.shape[1], self.img_size[2] / mask.shape[2])) > 0.0
+                    mask = zoom(mask, (self.img_size[0] / mask.shape[0], self.img_size[1] / mask.shape[1], self.img_size[2] / mask.shape[2])) > 0.5
                     masks.append(mask)
                 
                 
