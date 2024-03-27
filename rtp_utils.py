@@ -13,8 +13,7 @@ class save_gif():
         matplotlib.use('agg')
         self.experiment = experiment
         self.epoch = epoch
-        self.save_path = save_path
-        save_path = f"imgs/results.gif"
+        self.save_path = f"imgs/results.gif"
         self.num_cols = len(models) + 2
         self.fig, axx = plt.subplots(1, self.num_cols)
         self.fps = 12
@@ -46,13 +45,13 @@ class save_gif():
         self.delivered_dose = np.stack(self.delivered_dose, -1)
             
 
-        self.makegif(save_path, experiment, epoch)
+        self.makegif(experiment, epoch)
     
-    def makegif(self, save_path, experiment, epoch):
+    def makegif(self, experiment, epoch):
         anim = animation.FuncAnimation(self.fig, self.animate, init_func=self.init,
                                         frames=self.num_frames)
-        anim.save(save_path, writer=animation.PillowWriter(fps=self.fps, codec='libx264'))
-        experiment.log_image(save_path, step=epoch, overwrite=True)
+        anim.save(self.save_path, writer=animation.PillowWriter(fps=self.fps, codec='libx264'))
+        experiment.log_image(self.save_path, step=epoch, overwrite=True)
         plt.close()
     
     def animate(self, i):
