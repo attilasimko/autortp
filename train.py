@@ -59,7 +59,7 @@ x, y = gen_train[0]
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 # (Decoder type / Number of control points / Dose resolution / Image shape / Ray length / Leaf resolution)
-decoders = [("umea", 60, 64, img_size, 60, 64), ("vienna", 120, 64, img_size, 80, 64)]
+decoders = [("umea", 60, 64, img_size, 60, 64), ("vienna", 60, 64, img_size, 80, 64)]
 models = build_model(batch_size, img_size, decoders)
 for i in range(len(decoders)):
     models[i].compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
