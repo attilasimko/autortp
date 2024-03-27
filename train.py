@@ -53,6 +53,7 @@ gen_test = DataGenerator(base_path + "testing/",
                          structs=structs,
                           img_size=img_size,
                          batch_size=batch_size)
+x, y = gen_train[0]
     
 # Comet_ml
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
