@@ -37,16 +37,14 @@ def build_model(batch_size, decoders):
     x = x[:, :, :, 0, :]
     latent_space = x
 
-    dose = []
+    models = []
     for decoder_info in decoders:
-        if decoder_info[0] == "monaco":
-            _, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
-            monaco = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
-            dose.append(monaco.predict_dose(latent_space, inp))
-        else:
-            raise ValueError("Decoder not implemented")
+        _, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
+        monaco = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
+        dose = monaco.predict_dose(latent_space, inp)
+        models.append(Model(inp, dose))
 
-    return Model(inp, tf.concat(dose, 4))
+    return models
 
 class MonacoDecoder():
     def __init__(self, num_cp, dose_resolution, img_shape, num_slices, leaf_length):
@@ -132,7 +130,7 @@ class MonacoDecoder():
 
     def get_absorption_matrices(self, ct, mu_total):
         batches = []
-        absorption = tf.stop_gradient(tf.identity(tf.ones(ct.shape, dtype=tf.float32)))
+        absorption = tf.identity(tf.ones(ct.shape, dtype=tf.float32))
         for batch in range(ct.shape[0]):
             rotated_arrays = []
             for idx in range(self.num_cp):
@@ -145,7 +143,7 @@ class MonacoDecoder():
                 array = tf.where(tf.greater(ct[batch, ...], -0.8), array, 0)
                 array /= tf.reduce_max(array)
                 rotated_arrays.append(array)
-            const_array = tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32)
+            const_array = tf.stop_gradient(tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32))
             batches.append(tf.multiply(const_array, mu_total[batch, :][None, None, None, :]) + self.mu_epsilon)
         
         return batches

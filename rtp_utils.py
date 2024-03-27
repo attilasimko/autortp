@@ -9,36 +9,43 @@ tf.compat.v1.enable_eager_execution()
 
  
 class save_gif():
-    def __init__(self, gen, model, decoder_info, structure_weights, experiment, epoch):
+    def __init__(self, gen, models, decoders, structure_weights, experiment, epoch):
         matplotlib.use('agg')
-        x, y = gen[0]
-        name, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
-        save_path = f"imgs/{name}.gif"
-        decoder = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
-        monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"mus").output, model.layers[-1].output])
+        self.experiment = experiment
+        self.epoch = epoch
+        self.save_path = save_path
+        save_path = f"imgs/results.gif"
+        self.num_cols = len(models) + 2
+        self.fig, axx = plt.subplots(1, self.num_cols)
+        self.fps = 12
+        self.num_frames = self.ct.shape[2]
 
-        mlcs, mus, dose = monaco_model.predict_on_batch(x)     
-        mlcs = tf.where(mlcs > 0.2, 1.0, 0.0)
-        # absorption_matrices = decoder.get_absorption_matrices(x[..., 0:1])   
-        # ray_strength = decoder.get_rays(absorption_matrices, mlcs, mus)
-        self.delivered_dose = dose[0, ..., 0]
+        x, y = gen[0]
+
+        self.models = models
+        self.decoders = decoders
         self.ground_truth = y[0, ..., 0]
         self.ct = x[0, ..., 0]
-
         self.structure_weights = structure_weights
         self.weights = np.ones_like(self.ct)
         for i in range(len(structure_weights)):
             self.weights = np.where(y[0, ..., i+1] > 0.5, structure_weights[i], self.weights)
 
-        self.experiment = experiment
-        self.epoch = epoch
-        self.save_path = save_path
-        # self.mlc = mlcs[0, ..., cp_idx]
-        # self.ray_matrix = ray_strength[cp_idx].numpy()[0, ...]
+        self.delivered_dose = []
+        for i in range(len(models)):
+            model = models[i]
+            decoder_info = decoders[i]
 
-        self.fig, axx = plt.subplots(2, 2)
-        self.fps = 12
-        self.num_frames = self.ct.shape[2]
+            name, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
+            decoder = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
+            monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"mus").output, model.layers[-1].output])
+
+            mlcs, mus, dose = monaco_model.predict_on_batch(x)     
+            mlcs = tf.where(mlcs > 0.2, 1.0, 0.0)
+            self.delivered_dose.append(dose[0, ..., 0])
+        self.delivered_dose = np.stack(self.delivered_dose, -1)
+            
+
         self.makegif(save_path, experiment, epoch)
     
     def makegif(self, save_path, experiment, epoch):
@@ -49,7 +56,7 @@ class save_gif():
         plt.close()
     
     def animate(self, i):
-        dose_slice = self.delivered_dose[:, :, i]
+        dose_slice = self.delivered_dose[:, :, i, :]
         gt_slice = self.ground_truth[:, :, i]
         ct_slice = self.ct[:, :, i]
         weight_slice = self.weights[:, :, i]
@@ -66,12 +73,12 @@ class save_gif():
         self.title = self.fig.suptitle("", fontsize=4, **mono_font)
         vmin = np.min(self.ground_truth)
         vmax = np.max(self.ground_truth)
-        dose_slice = self.delivered_dose[:, :, 0]
+        dose_slice = self.delivered_dose[:, :, 0, :]
         gt_slice = self.ground_truth[:, :, 0]
         ct_slice = self.ct[:, :, 0]
         weight_slice = self.weights[:, :, 0]
         
-        plt.subplot(131)
+        plt.subplot(1, self.num_cols, 1)
         plt.title('weights')
         plt.tick_params(left=False,
                         bottom=False,
@@ -79,7 +86,7 @@ class save_gif():
                         labelbottom=False)
         self.imw = plt.imshow(weight_slice, vmin=1, vmax=np.max(self.structure_weights), cmap="hot", interpolation='bilinear')
 
-        plt.subplot(132)
+        plt.subplot(1, self.num_cols, 2)
         plt.title('true_dose')
         plt.tick_params(left=False,
                         bottom=False,
@@ -88,14 +95,15 @@ class save_gif():
         self.im3ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
         self.im3 = plt.imshow(gt_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
-        plt.subplot(133)
-        plt.title('pred_dose')
-        plt.tick_params(left=False,
-                        bottom=False,
-                        labelleft=False,
-                        labelbottom=False)
-        self.im4ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
-        self.im4 = plt.imshow(dose_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
+        for i in range(len(self.models)):
+            plt.subplot(1, self.num_cols, 3 + i)
+            plt.title(f'{self.decoders[i][0]} dose')
+            plt.tick_params(left=False,
+                            bottom=False,
+                            labelleft=False,
+                            labelbottom=False)
+            self.im4ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
+            self.im4 = plt.imshow(dose_slice[..., i], alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
 
     

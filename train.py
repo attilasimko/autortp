@@ -28,7 +28,7 @@ else:
     base_path = '/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/DSets/ARTP/'
 
 n_epochs = 50
-epoch_length = 20
+epoch_length = 1
 batch_size = 1
 learning_rate = 0.0001
 structs = ["Bladder", "FemoralHead_L", "FemoralHead_R", "Rectum"]
@@ -53,10 +53,11 @@ gen_test = DataGenerator(base_path + "testing/",
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 # (Decoder type / Number of control points / Dose resolution / Image shape / Number of slices / Leaf resolution)
-decoders = [("monaco", 48, 64, (128, 128), 100, 128)]
-model = build_model(batch_size, decoders)
-model.compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
-print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in model.trainable_weights]))}")
+decoders = [("monaco_48", 48, 64, (128, 128), 100, 128), ("monaco_12", 12, 64, (128, 128), 100, 128)]
+models = build_model(batch_size, decoders)
+for i in range(len(decoders)):
+    models[i].compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
+    print(f"{decoders[i][0]} - Model parameters: {int(np.sum([K.count_params(p) for p in models[i].trainable_weights]))}")
 
 # Debug part
 # x, y = gen_train[0]
@@ -69,19 +70,29 @@ print(f"Number of model parameters: {int(np.sum([K.count_params(p) for p in mode
 
 for epoch in range(n_epochs):
     training_loss = []
+    val_loss = []
+    for i in range(len(decoders)):
+        training_loss.append([])
+        val_loss.append([])
+
     for _ in range(epoch_length):
-        for i in range(len(gen_train)):
-            x, y = gen_train[i]
-            loss = model.train_on_batch(x, y)
-            training_loss.append(loss)
-    print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
+        for idx in range(len(gen_train)):
+            x, y = gen_train[idx]
+            for i in range(len(decoders)):
+                loss = models[i].train_on_batch(x, y)
+                training_loss[i].append(loss)
+
+    print(f'Epoch {epoch + 1}/{n_epochs} - loss: {[np.mean(curr_loss) for curr_loss in training_loss]}')
     experiment.log_metric("train_loss", np.mean(training_loss), step=epoch)
 
-    for i in range(len(gen_val)):
-        x, y = gen_val[i]
-        loss = model.test_on_batch(x, y)
-        print(f'Validation loss: {loss}')
-        experiment.log_metric("val_loss", loss, step=epoch)
+    for idx in range(len(gen_val)):
+        x, y = gen_val[idx]
+        for i in range(len(decoders)):
+            loss = models[i].test_on_batch(x, y)
+            val_loss.append(loss)
 
-    for decoder in decoders:
-        save_gif(gen_val, model, decoder, weights, experiment, epoch)
+    for i in range(len(decoders)):
+        print(f'{decoders[i][0]} - val. loss: {np.mean(val_loss)}')
+        experiment.log_metric(f"val_loss_{decoders[i][0]}", loss, step=epoch)
+
+    save_gif(gen_val, models, decoders, weights, experiment, epoch)
