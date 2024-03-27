@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import numpy as np
 import os
+from scipy.ndimage import zoom
 import random
 from scipy.ndimage import interpolation
 import tensorflow
@@ -21,10 +22,12 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
     def __init__(self,
                  data_path,
                  structs,
+                 img_size,
                  batch_size=32,
                  shuffle=True
                  ):
 
+        self.img_size = img_size
         self.data_path = data_path
         self.structs = structs
         self.batch_size = batch_size
@@ -95,13 +98,21 @@ class DataGenerator(tensorflow.keras.utils.Sequence):
         for file_path in file_path_list:
             with np.load(self.data_path + file_path) as file:
                 ct = np.array(file['CT'], dtype=float)
+                ct = zoom(ct, (self.img_size[0] / ct.shape[0], self.img_size[1] / ct.shape[1], self.img_size[2] / ct.shape[2]))
                 ct = np.expand_dims(np.interp(ct, (ct.min(), ct.max()), (-1.0, 1.0)), 3)
+
+                ptv = np.array(file['PTV'], dtype=float)
+                ptv = zoom(ptv, (self.img_size[0] / ptv.shape[0], self.img_size[1] / ptv.shape[1], self.img_size[2] / ptv.shape[2])) > 0.0
 
                 masks = []
                 masks.append(np.array(file['PTV'], dtype=float))
                 aux = np.array(file['Aux'], dtype=int)
                 for struct in self.structs:
-                    masks.append(aux == self.config.maps[struct])
+                    mask = aux == self.config.maps[struct]
+                    mask = zoom(mask, (self.img_size[0] / mask.shape[0], self.img_size[1] / mask.shape[1], self.img_size[2] / mask.shape[2])) > 0.0
+                    masks.append(mask)
+                
+                
                 masks = np.stack(masks, -1)
 
                 dose = np.expand_dims(np.array(file['Dose'], dtype=float), 3)

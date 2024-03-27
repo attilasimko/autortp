@@ -11,41 +11,40 @@ tf.compat.v1.enable_eager_execution()
 class save_gif():
     def __init__(self, gen, models, decoders, structure_weights, experiment, epoch):
         matplotlib.use('agg')
-        self.experiment = experiment
-        self.epoch = epoch
-        self.save_path = f"imgs/results.gif"
-        self.num_cols = len(models) + 2
-        self.fig, axx = plt.subplots(1, self.num_cols, figsize=(self.num_cols*4, 4))
-        self.fps = 12
 
-        x, y = gen[0]
+        for idx in range(len(gen)):
+            x, y = gen[idx]
+            self.experiment = experiment
+            self.epoch = epoch
+            self.save_path = f"imgs/{idx}.gif"
+            self.num_cols = len(models) + 2
+            self.fig, axx = plt.subplots(1, self.num_cols, figsize=(self.num_cols*4, 4))
+            self.fps = 12
 
-        self.models = models
-        self.decoders = decoders
-        self.ground_truth = y[0, ..., 0]
-        self.ct = x[0, ..., 0]
-        self.structure_weights = structure_weights
-        self.weights = np.ones_like(self.ct)
-        for i in range(len(structure_weights)):
-            self.weights = np.where(y[0, ..., i+1] > 0.5, structure_weights[i], self.weights)
-        self.num_frames = self.ct.shape[2]
 
-        self.delivered_dose = []
-        for i in range(len(models)):
-            model = models[i]
-            decoder_info = decoders[i]
+            self.models = models
+            self.decoders = decoders
+            self.ground_truth = y[0, ..., 0]
+            self.ct = x[0, ..., 0]
+            self.structure_weights = structure_weights
+            self.weights = np.ones_like(self.ct)
+            for i in range(len(structure_weights)):
+                self.weights = np.where(y[0, ..., i+1] > 0.5, structure_weights[i], self.weights)
+            self.num_frames = self.ct.shape[2]
 
-            name, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
-            decoder = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
-            monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"mus").output, model.layers[-1].output])
+            self.delivered_dose = []
+            for i in range(len(models)):
+                model = models[i]
+                decoder_info = decoders[i]
+                name, num_cp, dose_shape, img_shape, num_slices, leaf_length = decoder_info
+                decoder = MonacoDecoder(num_cp, dose_shape, img_shape, num_slices, leaf_length)
+                monaco_model = tf.keras.models.Model(inputs=model.input, outputs=[model.get_layer("mlc").output, model.get_layer(f"mus").output, model.layers[-1].output])
 
-            mlcs, mus, dose = monaco_model.predict_on_batch(x)     
-            mlcs = tf.where(mlcs > 0.2, 1.0, 0.0)
-            self.delivered_dose.append(dose[0, ..., 0])
-        self.delivered_dose = np.stack(self.delivered_dose, -1)
-            
-
-        self.makegif(experiment, epoch)
+                mlcs, mus, dose = monaco_model.predict_on_batch(x)     
+                mlcs = tf.where(mlcs > 0.2, 1.0, 0.0)
+                self.delivered_dose.append(dose[0, ..., 0])
+            self.delivered_dose = np.stack(self.delivered_dose, -1)
+            self.makegif(experiment, epoch)
     
     def makegif(self, experiment, epoch):
         anim = animation.FuncAnimation(self.fig, self.animate, init_func=self.init,

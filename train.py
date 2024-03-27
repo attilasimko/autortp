@@ -34,27 +34,32 @@ learning_rate = 0.0001
 structs = ["Bladder", "FemoralHead_L", "FemoralHead_R", "Rectum"]
 weights = [3.0, 2.0, 2.0, 2.0, 2.0]
 
+img_size = (128, 128, 240)
+
 # Custom data generator for efficiently loading the training data (stored as .npz files under base_path+"training/")
 gen_train = DataGenerator(base_path + "training/",
                           structs=structs,
+                          img_size=img_size,
                           batch_size=batch_size)
 
 # Data generator for validation data
 gen_val = DataGenerator(base_path + "validating/",
                         structs=structs,
+                          img_size=img_size,
                         batch_size=batch_size)
 
 # Data generator for test data
 gen_test = DataGenerator(base_path + "testing/",
                          structs=structs,
+                          img_size=img_size,
                          batch_size=batch_size)
-
+    
 # Comet_ml
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
-# (Decoder type / Number of control points / Dose resolution / Image shape / Number of slices / Leaf resolution)
-decoders = [("monaco_48", 48, 64, (128, 128), 100, 128), ("monaco_12", 12, 64, (128, 128), 100, 128)]
-models = build_model(batch_size, decoders)
+# (Decoder type / Number of control points / Dose resolution / Image shape / Ray length / Leaf resolution)
+decoders = [("umea", 60, 64, img_size, 60, 64), ("vienna", 120, 64, img_size, 80, 64)]
+models = build_model(batch_size, img_size, decoders)
 for i in range(len(decoders)):
     models[i].compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
     print(f"{decoders[i][0]} - Model parameters: {int(np.sum([K.count_params(p) for p in models[i].trainable_weights]))}")

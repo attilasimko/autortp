@@ -113,7 +113,7 @@ def get_data(path):
 roi_names = []
 patients = os.listdir(os.path.join(data_path))
 patients = patients
-orig_size = (128, 128, 100)
+orig_size = (512, 512, 128)
 
 num_filters = 48
 config = model_config("../miqa-seg/data_evaluation/PatientLabelProcessed.csv")
