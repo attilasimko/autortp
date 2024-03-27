@@ -99,7 +99,7 @@ class save_gif():
         self.im4ct = []
         for i in range(len(self.models)):
             plt.subplot(1, self.num_cols, 3 + i)
-            plt.title(f'{self.decoders[i][0]} dose')
+            plt.title(f'{self.decoders[i][0]}')
             plt.tick_params(left=False,
                             bottom=False,
                             labelleft=False,
