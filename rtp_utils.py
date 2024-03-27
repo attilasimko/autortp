@@ -61,9 +61,10 @@ class save_gif():
         weight_slice = self.weights[:, :, i]
 
         self.im3.set_array(gt_slice)
-        self.im4.set_array(dose_slice)
+        for i in range(len(self.models)):
+            self.im4[i].set_array(dose_slice[..., i])
+            self.im4ct[i].set_array(ct_slice)
         self.im3ct.set_array(ct_slice)
-        self.im4ct.set_array(ct_slice)
         self.imw.set_array(weight_slice)
         return [self.im3, self.im4, self.im3ct, self.im4ct, self.imw]
 
@@ -94,6 +95,8 @@ class save_gif():
         self.im3ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
         self.im3 = plt.imshow(gt_slice, alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
 
+        self.im4 = []
+        self.im4ct = []
         for i in range(len(self.models)):
             plt.subplot(1, self.num_cols, 3 + i)
             plt.title(f'{self.decoders[i][0]} dose')
@@ -101,8 +104,8 @@ class save_gif():
                             bottom=False,
                             labelleft=False,
                             labelbottom=False)
-            self.im4ct = plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear')
-            self.im4 = plt.imshow(dose_slice[..., i], alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none")
+            self.im4ct.append(plt.imshow(ct_slice, vmin=-1, vmax=1, cmap="gray", interpolation='bilinear'))
+            self.im4.append(plt.imshow(dose_slice[..., i], alpha=.5, cmap="jet", vmin=vmin, vmax=vmax, interpolation="none"))
 
 
     
