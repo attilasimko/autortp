@@ -75,6 +75,13 @@ for epoch in range(n_epochs):
             loss = model.train_on_batch(x, y)
             training_loss.append(loss)
     print(f'Epoch {epoch + 1}/{n_epochs} - loss: {np.mean(training_loss)}')
-    experiment.log_metric("loss", np.mean(training_loss), step=epoch)
+    experiment.log_metric("train_loss", np.mean(training_loss), step=epoch)
+
+    for i in range(len(gen_val)):
+        x, y = gen_val[i]
+        loss = model.test_on_batch(x, y)
+        print(f'Validation loss: {loss}')
+        experiment.log_metric("val_loss", loss, step=epoch)
+        
     for decoder in decoders:
         save_gif(gen_val, model, decoder, weights, experiment, epoch)
