@@ -75,15 +75,15 @@ for epoch in range(n_epochs):
         training_loss.append([])
         val_loss.append([])
 
-    for _ in range(epoch_length):
-        for idx in range(len(gen_train)):
-            x, y = gen_train[idx]
-            for i in range(len(decoders)):
-                loss = models[i].train_on_batch(x, y)
-                training_loss[i].append(loss)
+    # for _ in range(epoch_length):
+    #     for idx in range(len(gen_train)):
+    #         x, y = gen_train[idx]
+    #         for i in range(len(decoders)):
+    #             loss = models[i].train_on_batch(x, y)
+    #             training_loss[i].append(loss)
 
-    print(f'Epoch {epoch + 1}/{n_epochs} - loss: {[np.mean(curr_loss) for curr_loss in training_loss]}')
-    experiment.log_metric("train_loss", np.mean(training_loss), step=epoch)
+    # print(f'Epoch {epoch + 1}/{n_epochs} - loss: {[np.mean(curr_loss) for curr_loss in training_loss]}')
+    # experiment.log_metric("train_loss", np.mean(training_loss), step=epoch)
 
     for idx in range(len(gen_val)):
         x, y = gen_val[idx]
@@ -92,7 +92,7 @@ for epoch in range(n_epochs):
             val_loss.append(loss)
 
     for i in range(len(decoders)):
-        print(f'{decoders[i][0]} - val. loss: {np.mean(val_loss)}')
-        experiment.log_metric(f"val_loss_{decoders[i][0]}", loss, step=epoch)
+        print(f'{decoders[i][0]} - val. loss: {np.mean(val_loss[i])}')
+        experiment.log_metric(f"val_loss_{decoders[i][0]}", np.mean(val_loss[i]), step=epoch)
 
     save_gif(gen_val, models, decoders, weights, experiment, epoch)
