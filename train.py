@@ -28,7 +28,7 @@ else:
     base_path = '/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/DSets/ARTP/'
 
 n_epochs = 500
-epoch_length = 50
+epoch_length = 1
 batch_size = 1
 learning_rate = 0.0001
 structs = ["Bladder", "FemoralHead_L", "FemoralHead_R", "Rectum"]
@@ -53,7 +53,7 @@ gen_test = DataGenerator(base_path + "testing/",
                          structs=structs,
                           img_size=img_size,
                          batch_size=batch_size)
-    
+
 # Comet_ml
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
