@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv3D, AveragePooling2D, MaxPooling3D, UpSampling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
+from tensorflow.keras.layers import Input, Conv3D, Add, Subtract, AveragePooling2D, MaxPooling3D, UpSampling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
 import numpy as np
 from scipy.ndimage import rotate
 import tensorflow_addons as tfa
@@ -81,10 +81,9 @@ class MonacoDecoder():
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
         leaf_total = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
-        leaf_lower, leaf_upper = tf.split(leaf_total, 2, axis=1)
-        leaf_lower = tf.math.cumprod(leaf_lower, axis=1)
-        leaf_upper = tf.math.cumprod(leaf_upper, axis=1, reverse=True)
-        leaf_total = Concatenate(name="mlc", axis=1)([leaf_upper, leaf_lower])
+        leaf_lower = tf.math.cumprod(leaf_total, axis=1)
+        leaf_upper = tf.math.cumprod(leaf_total, axis=1, reverse=True)
+        leaf_total = Add(name="mlc")([1 - leaf_lower, - leaf_upper])
         
 
         mu_total = Conv2D(self.num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
