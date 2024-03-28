@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv3D, Add, Subtract, AveragePooling2D, MaxPooling3D, UpSampling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
+from tensorflow.keras.layers import Input, Conv3D, Add, Subtract, Multiply, AveragePooling2D, MaxPooling3D, UpSampling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
 import numpy as np
 from scipy.ndimage import rotate
 import tensorflow_addons as tfa
@@ -83,7 +83,7 @@ class MonacoDecoder():
         leaf_total = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
         leaf_lower = 1 - tf.math.cumprod(leaf_total, axis=1)
         leaf_upper = 1 - tf.math.cumprod(leaf_total, axis=1, reverse=True)
-        leaf_total = Add(name="mlc")([leaf_lower, leaf_upper])
+        leaf_total = Multiply(name="mlc")([leaf_lower, leaf_upper])
         
 
         mu_total = Conv2D(self.num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
