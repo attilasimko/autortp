@@ -82,9 +82,10 @@ class MonacoDecoder():
         x = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
         leaf_total = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
         leaf_lower = tf.math.cumprod(leaf_total, axis=1)
+        leaf_lower = Subtract()([tf.ones_like(leaf_lower), leaf_lower])
         leaf_upper = tf.math.cumprod(leaf_total, axis=1, reverse=True)
-        leaf_total = Multiply()([leaf_lower, leaf_upper])
-        leaf_total = Subtract(name='mlc')([tf.ones_like(leaf_total), leaf_total])
+        leaf_upper = Subtract()([tf.ones_like(leaf_upper), leaf_upper])
+        leaf_total = Multiply(name='mlc')([leaf_lower, leaf_upper])
         
 
         mu_total = Conv2D(self.num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
