@@ -81,9 +81,10 @@ class MonacoDecoder():
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
         leaf_total = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal")(x)
-        leaf_lower = 1 - tf.math.cumprod(leaf_total, axis=1)
-        leaf_upper = 1 - tf.math.cumprod(leaf_total, axis=1, reverse=True)
-        leaf_total = Multiply(name="mlc")([leaf_lower, leaf_upper])
+        leaf_lower = tf.math.cumprod(leaf_total, axis=1)
+        leaf_upper = tf.math.cumprod(leaf_total, axis=1, reverse=True)
+        leaf_total = Multiply()([leaf_lower, leaf_upper])
+        leaf_total = Subtract(name='mlc')([1.0, leaf_total])
         
 
         mu_total = Conv2D(self.num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
