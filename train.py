@@ -28,9 +28,9 @@ else:
     base_path = '/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/DSets/ARTP/'
 
 n_epochs = 500
-epoch_length = 1
+epoch_length = 10
 batch_size = 1
-learning_rate = 0.0001
+learning_rate = 0.0004
 structs = ["Bladder", "FemoralHead_L", "FemoralHead_R", "Rectum"]
 weights = [3.0, 2.0, 2.0, 2.0, 2.0]
 
@@ -58,7 +58,7 @@ gen_test = DataGenerator(base_path + "testing/",
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 # (Decoder type / Number of control points / Dose resolution / Image shape / Ray length / Leaf resolution)
-decoders = [("umea", 24, 64, img_size, 60, 128), ("vienna", 24, 64, img_size, 80, 128)]
+decoders = [("umea", 12, 64, img_size, 60, 128), ("vienna", 12, 64, img_size, 80, 128)]
 models = build_model(batch_size, img_size, decoders)
 for i in range(len(decoders)):
     models[i].compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
