@@ -24,6 +24,8 @@ args = parser.parse_args()
 
 if (args.base == "GAUSS"):
     base_path = '/data/attila/ARTP/'
+elif (args.base == "alvis"):
+    base_path = '/mimer/NOBACKUP/groups/naiss2023-6-64/ARTP/'
 else:
     base_path = '/mnt/f4616a95-e470-4c0f-a21e-a75a8d283b9e/DSets/ARTP/'
 
@@ -58,7 +60,7 @@ gen_test = DataGenerator(base_path + "testing/",
 experiment = Experiment(api_key="ro9UfCMFS2O73enclmXbXfJJj", project_name="gerd")
 
 # (Decoder type / Number of control points / Dose resolution / Image shape / Ray length / Leaf resolution)
-decoders = [("umea", 12, 64, img_size, 60, 128), ("vienna", 12, 64, img_size, 80, 128)]
+decoders = [("umea", 48, 128, img_size, 60, 128), ("vienna", 48, 128, img_size, 80, 128)]
 models = build_model(batch_size, img_size, decoders)
 for i in range(len(decoders)):
     models[i].compile(loss=rtp_loss(weights), optimizer=Adam(learning_rate=learning_rate))
