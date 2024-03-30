@@ -30,7 +30,7 @@ else:
 n_epochs = 500
 epoch_length = 1
 batch_size = 1
-learning_rate = 0.0004
+learning_rate = 0.0001
 structs = ["Bladder", "FemoralHead_L", "FemoralHead_R", "Rectum"]
 weights = [3.0, 2.0, 2.0, 2.0, 2.0]
 
