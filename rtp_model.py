@@ -1,13 +1,16 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv3D, Add, Subtract, Multiply, AveragePooling2D, MaxPooling3D, UpSampling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
+from tensorflow.keras.layers import Input, Conv3D, Add, Lambda, Subtract, Multiply, AveragePooling2D, MaxPooling3D, UpSampling3D, MaxPooling2D, Concatenate, Flatten, Dense, UpSampling2D, Dropout, Reshape, Activation, Conv1D, Conv2D
 import numpy as np
 from scipy.ndimage import rotate
 import tensorflow_addons as tfa
+import tensorflow.keras.backend as K
 tf.compat.v1.enable_eager_execution()
 tf.executing_eagerly()
 
+def clipped_relu(x):
+    return K.maximum(0.0, K.minimum(1.0, x))
 
 class leaf_reg(keras.regularizers.Regularizer):
     def __init__(self, alpha):
@@ -81,13 +84,11 @@ class MonacoDecoder():
         x = UpSampling2D((leaf_upsampling, img_upsampling))(x)
         x = Conv2D(self.num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
         leaf_total = Conv2D(self.num_cp, 1, activation='sigmoid', padding='same', kernel_initializer="he_normal", name='mlc')(x)
-        # leaf_lower = tf.math.cumprod(leaf_total, axis=1)
-        # leaf_lower = Subtract()([tf.ones_like(leaf_lower), leaf_lower])
-        # leaf_upper = tf.math.cumprod(leaf_total, axis=1, reverse=True)
-        # leaf_upper = Subtract()([tf.ones_like(leaf_upper), leaf_upper])
-        # leaf_total = Multiply(name='mlc')([leaf_lower, leaf_upper])
+        leaf_lower = tf.math.cumsum(leaf_total, axis=1)
+        leaf_upper = tf.math.cumsum(leaf_total, axis=1, reverse=True)
+        leaf_total = Multiply()([leaf_lower, leaf_upper])
+        leaf_total = Lambda(clipped_relu, name='mlc')(leaf_total)
         
-
         mu_total = Conv2D(self.num_cp, 3, activation='relu', padding='same', kernel_initializer="he_normal")(x)
         img_downsampling = tf.minimum(4, mu_total.shape[1])
         leaf_downsampling = tf.minimum(4, mu_total.shape[2])
