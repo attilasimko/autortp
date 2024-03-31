@@ -30,11 +30,15 @@ def build_model(batch_size, img_shape, decoders):
     inp = Input(shape=(img_shape[0], img_shape[1], img_shape[2], 2), batch_size=batch_size)
 
     x = Conv3D(4, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(inp)
+    x = Conv3D(8, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((4, 4, 5))(x)
     x = Conv3D(8, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
+    x = Conv3D(16, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((2, 2, 5))(x)
+    x = Conv3D(16, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = Conv3D(32, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((2, 2, 4))(x)
+    x = Conv3D(32, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = Conv3D(64, (3, 3, 3), activation='relu', padding='same', kernel_initializer="he_normal")(x)
     x = MaxPooling3D((2, 2, 1))(x)
     x = x[:, :, :, 0, :]
