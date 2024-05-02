@@ -145,10 +145,10 @@ class MonacoDecoder():
             for idx in range(self.num_cp):
                 angle = idx * 360 / self.num_cp
                 array = absorption[batch, ...]
-                array = tf.where(tf.greater(array, 0), array, 0)
-                array = tf.where(tf.greater(ct[batch, ...], -0.8), array, 0)
                 array = tfa.image.rotate(array, angle, fill_mode='nearest', interpolation='bilinear')
                 array = array.shape[0] - tf.cumsum(array, axis=0)
+                array = tf.where(tf.greater(array, 0), array, 0)
+                array = tf.where(tf.greater(tfa.image.rotate(ct[batch, ...], angle, fill_mode='nearest', interpolation='bilinear'), -0.8), array, 0)
                 # array = tfa.image.rotate(array, - angle, fill_mode='nearest', interpolation='bilinear')
                 array /= tf.reduce_max(array)
                 rotated_arrays.append(array)
