@@ -162,7 +162,7 @@ class MonacoDecoder():
         indeces, _ = np.meshgrid(np.arange(self.leaf_resolution), np.arange(self.dose_resolution))
 
         for angle_idx in range(self.num_cp):
-            array = np.expand_dims(indeces, 0) # rotate(indeces, - angle_idx * 360 / self.num_cp, reshape=False, order=0, mode='nearest'), 0)
+            array = np.expand_dims(rotate(indeces, - 0 * 360 / self.num_cp, reshape=False, order=0, mode='nearest'), 0)
             rotated_arrays.append(array)
 
         return [tf.constant(x, dtype=tf.int32) for x in rotated_arrays]
