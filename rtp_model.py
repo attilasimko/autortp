@@ -119,6 +119,7 @@ class MonacoDecoder():
     def get_rays(self, absorption_matrices, leafs):
         ray_strengths = []
         for cp_idx in range(len(self.ray_matrices)):
+            angle = cp_idx * 360 / self.num_cp
             batch_rays = []
             for batch_idx in range(leafs.shape[0]):
                 ray_slices = []
@@ -130,6 +131,7 @@ class MonacoDecoder():
                     ray_slices.append(current_rays[0, ..., 0])
                 ray_stack = tf.expand_dims(tf.stack(ray_slices, -1), 0)
                 ray_stack = UpSampling3D((self.img_shape[0] // self.dose_resolution, self.img_shape[1] // self.leaf_resolution, self.img_shape[2] // self.num_leafs))(ray_stack)[0, ...]
+                ray_stack = tfa.image.rotate(ray_stack, - angle, fill_mode='nearest', interpolation='bilinear')
                 absorbed_rays = tf.expand_dims(tf.multiply(ray_stack, absorption_matrices[batch_idx][:, :, :, cp_idx]), 0)
                 batch_rays.append(absorbed_rays)
             ray_strengths.append(Concatenate(0, name=f"ray_{cp_idx}")(batch_rays))
@@ -143,11 +145,11 @@ class MonacoDecoder():
             for idx in range(self.num_cp):
                 angle = idx * 360 / self.num_cp
                 array = absorption[batch, ...]
-                array = tfa.image.rotate(array, angle, fill_mode='nearest', interpolation='bilinear')
-                array = array.shape[0] - tf.cumsum(array, axis=0)
-                array = tfa.image.rotate(array, - angle, fill_mode='nearest', interpolation='bilinear')
                 array = tf.where(tf.greater(array, 0), array, 0)
                 array = tf.where(tf.greater(ct[batch, ...], -0.8), array, 0)
+                array = tfa.image.rotate(array, angle, fill_mode='nearest', interpolation='bilinear')
+                array = array.shape[0] - tf.cumsum(array, axis=0)
+                # array = tfa.image.rotate(array, - angle, fill_mode='nearest', interpolation='bilinear')
                 array /= tf.reduce_max(array)
                 rotated_arrays.append(array)
             const_array = tf.stop_gradient(tf.cast(tf.concat(rotated_arrays, axis=-1), dtype=tf.float32))
@@ -160,7 +162,7 @@ class MonacoDecoder():
         indeces, _ = np.meshgrid(np.arange(self.leaf_resolution), np.arange(self.dose_resolution))
 
         for angle_idx in range(self.num_cp):
-            array = np.expand_dims(rotate(indeces, - angle_idx * 360 / self.num_cp, reshape=False, order=0, mode='nearest'), 0)
+            array = np.expand_dims(indeces, 0) # rotate(indeces, - angle_idx * 360 / self.num_cp, reshape=False, order=0, mode='nearest'), 0)
             rotated_arrays.append(array)
 
         return [tf.constant(x, dtype=tf.int32) for x in rotated_arrays]
